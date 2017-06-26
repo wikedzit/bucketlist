@@ -51,20 +51,21 @@ class Auth(Resource):
     @ns.response(200, 'User Logged in')
     @ns.expect(auth)
     def post(self):
-        args = parser.parse_args()
-        username = args['username']
-        password = args['password']
-        if username and password:
+        data = api.payload.keys()
+        if ('username' in data) and ('password' in data):
             email = r"(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$)"
-            if re.match(email,username):
+            username = api.payload['username']
+            password = api.payload['password']
+
+            if re.match(email, username):
                 usr = User.login(username, password)
                 if usr:
                     return {'access_token': create_access_token(identity=usr.id)}, 200
-                return {"message": "Incorrect username or password"}, 404
+                return {"message": "Incorrect username or password"}
             else:
-                {"message": "Username must be a valid email address"}, 404
+                return {"message": "Username must be a valid email address"}
         else:
-            return {"message": "Both username and password are required"}, 404
+            return {"message": "Both username and password are required"}
 
 @ns.route('/auth/register')
 class Users(Resource):
@@ -73,21 +74,21 @@ class Users(Resource):
     @ns.expect(user)
     def post(self):
         """Register a new user"""
-        if 'username' in api.payload.keys() and 'password' in api.payload.keys():
+        data = api.payload.keys()
+        if ('username' in data) and ('password' in data):
             email = r"(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$)"
             if re.match(email, api.payload['username']):
                 user_exists = User.where(username=api.payload['username']).first()
                 if user_exists:
-                    {"message": "Username not available"}, 404
+                    return {"message": "Username not available"}, 404
                 else:
                     usr = User(api.payload)
                     usr.store()
                     return {'message':"User created"}, 204
             else:
-                {"message": "Username must be a valid email address"}, 404
+                return {"message": "Username must be a valid email address"}
         else:
-            return {"message": "Both username and password are required"}, 404
-
+            return {"message": "Both username and password are required"}
 
 @ns.route('/bucketlists')
 class BucketList(Resource):
