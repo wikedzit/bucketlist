@@ -1,3 +1,8 @@
+#import os
+#import sys
+#file_dir = os.path.dirname(__file__)
+#sys.path.append(file_dir)
+
 from flask import Flask
 from .v1.config.config import app_config
 from flask_sqlalchemy import SQLAlchemy
@@ -16,7 +21,6 @@ def envi(current=None):
     app.config.from_object(app_config['Development'])
     if current:
         app.config.from_object(app_config[current])
-
 
 envi()
 databases = SQLAlchemy(app)

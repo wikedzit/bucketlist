@@ -1,21 +1,37 @@
-import unittest
 import json
+from nose.tools import assert_equal
+from nose.tools import assert_not_equal
+from nose.tools import assert_raises
+from nose.tools import raises
+from ...imports import app, envi, databases
 
-class TestAuthentication(unittest.TestCase):
+class TestAuthentication():
     def setUp(self):
-        pass
+        self.app = app.test_client()
+        envi("Testing")
+        databases.create_all()
+
+        payload = {'username':'twikedzi@gmail.com', 'password':'admin'}
+        self.app.post('/auth/register', data=payload)
 
     def tearDown(self):
-        pass
+        databases.session.remove()
+        databases.drop_all()
 
     def test_validates_user_inputs(self):
-        self.assertTrue(True)
+        assert_equal(True,True)
 
     def test_user_can_register(self):
-        self.assertTrue(True)
+        assert_equal(True,True)
 
     def test_no_ducplicated_usernames(self):
-        self.assertTrue(True)
+        assert_equal(True,True)
 
     def test_user_can_login(self):
-        self.assertTrue(True)
+        payload = {'username':'twikedzi@gmail.com','password':'admin'}
+        credentials = self.app.post('/auth/login', data=payload)
+        assert_equal(credentials, "abc")
+        #datadict = json.loads(credentials.data)
+        #token = datadict['Token']
+        #print(token)
+        assert_equal(True,True)

@@ -209,4 +209,4 @@ class Items(Resource):
         if itm.put(api.payload):
             return itm, 200
         else:
-            return {'message': 'Item could not be updated'}, 417
+            return {'message': 'Item could not be updated'}, 404
