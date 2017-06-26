@@ -13,10 +13,9 @@ class Eloquent():
         try:
             db.session.add(self)
             db.session.commit()
+            return True
         except:
             return False
-        else:
-            return True
 
     # Modifies a number of fields
     def put(self, payload):

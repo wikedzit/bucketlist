@@ -114,10 +114,14 @@ class BucketList(Resource):
     @ns.expect(bucket)
     def post(self):
         """Create a new bucket"""
-        buck = Bucket(api.payload)
-        if buck.store():
-            return {'message': 'Bucket created'}, 204
-        return {'message': 'Bucket could not be created'}, 417
+        try:
+            buck = Bucket(api.payload)
+            if buck.store():
+                return {'message': 'Bucket created'}, 204
+            else:
+                return {'message': 'Bucket could not be created'}
+        except:
+            return {'message': 'An error has occured, could not create a bucket'}
 
 
 @ns.route('/bucketlists/<int:id>')

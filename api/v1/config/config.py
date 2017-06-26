@@ -10,7 +10,7 @@ class Testing(object):
     SQLALCHEMY_DATABASE_URI = db_config['test']
 
 
-class Development(object):
+class Develop(object):
     DEBUG = True
     TESTING = False
     SECRET_KEY = os.urandom(16)
@@ -30,6 +30,6 @@ class Production(object):
 
 app_config = {
     'Testing': Testing,
-    'Develop': Development,
+    'Develop': Develop,
     'Production': Production
 }
