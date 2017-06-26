@@ -30,6 +30,6 @@ class Production(object):
 
 app_config = {
     'Testing': Testing,
-    'Development': Development,
+    'Develop': Development,
     'Production': Production
 }

@@ -1,9 +1,7 @@
 import json
 from nose.tools import assert_equal
-from nose.tools import assert_not_equal
-from nose.tools import assert_raises
-from nose.tools import raises
-from ...imports import app, envi, databases
+from nose.tools import assert_not_equal, assert_raises, raises, assert_in
+from ...imports import ns,app, envi, databases
 
 class TestBucketList():
     def setUp(self):
@@ -13,10 +11,10 @@ class TestBucketList():
         pass
 
     def test_validates_backetlist_name_before_creating_them(self):
-        assert_equal(True,True)
+        assert_equal(True, True)
 
     def test_validates_token(self):
-        assert_equal(True,True)
+        assert_equal(True, True)
 
     def test_requires_token_to_access_bucketlists(self):
         assert_equal(True,True)

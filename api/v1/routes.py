@@ -1,6 +1,6 @@
 from flask import jsonify, request, abort
-from api.imports import app, api, ns, databases,jwt
-from api.v1.models import User, Bucket, Item
+from ..imports import app, api, ns,envi, databases,jwt
+from ..v1.models import User, Bucket, Item
 from flask_restplus import Resource, fields, reqparse
 from flask_jwt_extended import jwt_required, create_access_token, get_jwt_identity
 
@@ -43,18 +43,6 @@ auth = api.model('User', {
 })
 
 
-# Using the expired_token_loader decorator, we will now call
-# this function whenever an expired but otherwise valid access
-# token attempts to access an endpoint
-@jwt.expired_token_loader
-def my_expired_token_callback():
-    return jsonify({
-        'status': 401,
-        'sub_status': 101,
-        'msg': 'The token has expired'
-    }), 200
-
-
 @ns.route('/auth/login')
 class Auth(Resource):
     """Shows a list of users for the authenticated user, and lets you POST to add new users"""
@@ -92,7 +80,6 @@ class BucketList(Resource):
     """Shows a list of buckets for the authenticated user, and lets you POST to add new buckets"""
     @ns.doc('list_buckets')
     @ns.marshal_list_with(bucket)
-    @jwt_required
     def get(self):
         """List all buckets"""
         args = parser.parse_args()
