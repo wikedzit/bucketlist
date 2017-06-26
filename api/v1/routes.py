@@ -1,3 +1,4 @@
+import re
 from flask import jsonify, request, abort
 from ..imports import app, api, ns,envi, databases,jwt
 from ..v1.models import User, Bucket, Item
@@ -54,25 +55,38 @@ class Auth(Resource):
         username = args['username']
         password = args['password']
         if username and password:
-            usr = User.login(username, password)
-            if usr:
-                return {'access_token': create_access_token(identity=usr.id)}, 200
-            return {"message": "Incorrect username or password"}, 404
+            email = r"(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$)"
+            if re.match(email,username):
+                usr = User.login(username, password)
+                if usr:
+                    return {'access_token': create_access_token(identity=usr.id)}, 200
+                return {"message": "Incorrect username or password"}, 404
+            else:
+                {"message": "Username must be a valid email address"}, 404
         else:
             return {"message": "Both username and password are required"}, 404
-
 
 @ns.route('/auth/register')
 class Users(Resource):
     """Shows a list of users for the authenticated user, and lets you POST to add new users"""
     @ns.doc('register_user')
     @ns.expect(user)
-    @ns.marshal_with(user, code=201)
     def post(self):
         """Register a new user"""
-        usr = User(api.payload)
-        usr.store()
-        return usr
+        if 'username' in api.payload.keys() and 'password' in api.payload.keys():
+            email = r"(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$)"
+            if re.match(email, api.payload['username']):
+                user_exists = User.where(username=api.payload['username']).first()
+                if user_exists:
+                    {"message": "Username not available"}, 404
+                else:
+                    usr = User(api.payload)
+                    usr.store()
+                    return {'message':"User created"}, 204
+            else:
+                {"message": "Username must be a valid email address"}, 404
+        else:
+            return {"message": "Both username and password are required"}, 404
 
 
 @ns.route('/bucketlists')
@@ -83,25 +97,25 @@ class BucketList(Resource):
     def get(self):
         """List all buckets"""
         args = parser.parse_args()
-        lmt = 0
+        lmt = 20
         qword = None
         if args['limit']:
             lmt = int(args['limit'])
+            if (lmt > 0 and lmt <= 100):
+                return None
 
         if args['q']:
             qword = args['q']
-        # user = User.first()
         buckets = Bucket.all(lmt=lmt, q=qword)
         return buckets
 
     @ns.doc('create_bucket')
     @ns.expect(bucket)
-    @ns.marshal_with(bucket, code=201)
     def post(self):
         """Create a new bucket"""
         buck = Bucket(api.payload)
         if buck.store():
-            return buck, 201
+            return {'message': 'Bucket created'}, 204
         return {'message': 'Bucket could not be created'}, 417
 
 
