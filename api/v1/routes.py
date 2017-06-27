@@ -103,7 +103,6 @@ class BucketList(Resource):
     @jwt_required
     def get(self):
         """List all buckets"""
-        current_user = get_jwt_identity()
 
         args = parser.parse_args()
         lmt = 20
@@ -115,7 +114,9 @@ class BucketList(Resource):
 
         if args['q']:
             qword = args['q']
-        buckets = Bucket.all(lmt=lmt, q=qword)
+
+        user_id = get_jwt_identity()
+        buckets = Bucket.allForUser(user_id=user_id, lmt=lmt, q=qword)
         return buckets
 
     @ns.doc('create_bucket')

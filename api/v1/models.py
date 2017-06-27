@@ -1,6 +1,7 @@
 from datetime import datetime
 from passlib.apps import custom_app_context as pwdc
 from ..imports import databases as db
+from flask_jwt_extended import get_jwt_identity
 
 
 class Eloquent():
@@ -40,15 +41,17 @@ class Eloquent():
     def all(cls, lmt=0, q=None):
         qword = '%{0}%'.format(q)
         if q:
-            if lmt > 0:
-                return cls.query.limit(lmt).filter(cls.name.ilike(qword)).all()
-            else:
-                return cls.query.filter(cls.name.ilike(qword)).all()
+            return cls.query.limit(lmt).filter(cls.name.ilike(qword)).all()
         else:
-            if lmt > 0:
-                return cls.query.limit(lmt).all()
-            else:
-                return cls.query.all()
+            return cls.query.limit(lmt).all()
+
+    @classmethod
+    def allForUser(cls,user_id, lmt=0, q=None):
+        qword = '%{0}%'.format(q)
+        if q:
+            return cls.query.filter(cls.name.ilike(qword)).filter(User.id == user_id).limit(lmt).all()
+        else:
+            return cls.query.filter(User.id == user_id).limit(lmt).all()
 
     @classmethod
     def first(cls):
