@@ -53,7 +53,8 @@ class Auth(Resource):
     @ns.response(200, 'User Logged in')
     @ns.expect(auth)
     def post(self):
-
+        if not api.payload:
+            return {"message": "Payload missing"}, 404
         data = api.payload.keys()
         if ('username' in data) and ('password' in data):
             email = r"(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$)"
@@ -102,7 +103,6 @@ class BucketList(Resource):
     @jwt_required
     def get(self):
         """List all buckets"""
-
         current_user = get_jwt_identity()
 
         args = parser.parse_args()
@@ -120,6 +120,7 @@ class BucketList(Resource):
 
     @ns.doc('create_bucket')
     @ns.expect(bucket)
+    @jwt_required
     def post(self):
         """Create a new bucket"""
         try:
@@ -143,6 +144,7 @@ class Buckets(Resource):
     """Show a single bucket and lets you update or delete them"""
     @ns.doc('get_bucket')
     @ns.marshal_with(bucket)
+    @jwt_required
     def get(self, id):
         """Fetch a given bucket"""
         buck = Bucket.find(id)
@@ -153,6 +155,7 @@ class Buckets(Resource):
 
     @ns.doc('delete_backet')
     @ns.response(204, 'Bucket deleted')
+    @jwt_required
     def delete(self, id):
         """Delete a bucket given its identifier"""
         buck = Bucket.find(id)
@@ -164,6 +167,7 @@ class Buckets(Resource):
 
     @ns.expect(bucket)
     @ns.marshal_with(bucket)
+    @jwt_required
     def put(self, id):
         """Update a bucket given its identifier"""
         buck = Bucket.find(id)
@@ -179,6 +183,7 @@ class ItemsList(Resource):
     """Shows a list of items in a given bucket, and lets you POST to add new items"""
     @ns.doc('list_items')
     @ns.marshal_list_with(item)
+    @jwt_required
     def get(self, id):
         """List all items"""
         items = Bucket.find(id).items
@@ -187,6 +192,7 @@ class ItemsList(Resource):
     @ns.doc('create_items')
     @ns.expect(item)
     @ns.marshal_with(item, code=201)
+    @jwt_required
     def post(self, id):
         """Create a new item"""
         api.payload.update({'bucket_id': id})
@@ -203,6 +209,7 @@ class Items(Resource):
     """Show a single bucket item and lets you update or delete them"""
     @ns.doc('get_bucket_item')
     @ns.marshal_with(item)
+    @jwt_required
     def get(self, id, item_id):
         """Fetch a given bucket"""
         itm = Item.where(id=item_id, bucket_id=id).first()
@@ -210,6 +217,7 @@ class Items(Resource):
 
     @ns.doc('delete_backet_item')
     @ns.response(204, 'Item deleted')
+    @jwt_required
     def delete(self, id, item_id):
         """Delete a bucket given its identifier"""
         itm = Item.where(id=item_id, bucket_id=id).first()
@@ -221,6 +229,7 @@ class Items(Resource):
 
     @ns.expect(bucket)
     @ns.marshal_with(bucket)
+    @jwt_required
     def put(self, id, item_id):
         """Update an Item given a bucket identifier and Item identifier"""
         itm = Item.where(id=item_id, bucket_id=id).first()

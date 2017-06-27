@@ -1,5 +1,5 @@
 import os
-from datetime import datetime
+from datetime import timedelta
 from . dbase import db_config
 
 class AppConfig(object):
@@ -9,7 +9,7 @@ class AppConfig(object):
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     WTF_CSRF_ENABLED = True
     SQLALCHEMY_DATABASE_URI = db_config['develop']
-    JWT_ACCESS_TOKEN_EXPIRES = datetime.timedelta(minutes=30)
+    JWT_ACCESS_TOKEN_EXPIRES = timedelta(minutes=30)
 
 class Testing(AppConfig):
     TESTING = True
@@ -21,7 +21,6 @@ class Develop(AppConfig):
 class Production(AppConfig):
     DEBUG = False
     SQLALCHEMY_DATABASE_URI = db_config['production']
-
 
 app_config = {
     'Testing': Testing,
