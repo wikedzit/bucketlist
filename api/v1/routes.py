@@ -95,6 +95,19 @@ class Users(Resource):
         else:
             return {"message": "Both username and password are required"}
 
+
+# Using the expired_token_loader decorator, we will now call
+# this function whenever an expired but otherwise valid access
+# token attempts to access an endpoint
+@jwt.expired_token_loader
+def my_expired_token_callback():
+    return jsonify({
+        'status': 401,
+        'sub_status': 101,
+        'msg': 'The token has expired'
+    }), 200
+
+
 @ns.route('/bucketlists')
 class BucketList(Resource):
     """Shows a list of buckets for the authenticated user, and lets you POST to add new buckets"""

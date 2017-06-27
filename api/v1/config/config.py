@@ -9,7 +9,7 @@ class AppConfig(object):
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     WTF_CSRF_ENABLED = True
     SQLALCHEMY_DATABASE_URI = db_config['develop']
-    JWT_ACCESS_TOKEN_EXPIRES = timedelta(minutes=30)
+    JWT_ACCESS_TOKEN_EXPIRES = timedelta(minutes=15)
 
 class Testing(AppConfig):
     TESTING = True
