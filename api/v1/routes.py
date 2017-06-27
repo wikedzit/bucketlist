@@ -220,7 +220,3 @@ class Items(Resource):
             return itm, 200
         else:
             return {'message': 'Item could not be updated'}, 404
-
-
-ns.add_resource(Buckets, '/bucketlists')
-api.add_resource(BucketList, '/bucketlists/<int:id>')

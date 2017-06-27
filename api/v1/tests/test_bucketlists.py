@@ -1,6 +1,6 @@
 import json
 from flask_testing import TestCase
-from ...imports import app,api,ns,jwt, envi, databases
+from ...imports import app,jwt, envi, databases
 from ...v1.models import User
 
 class TestBucketList(TestCase):
