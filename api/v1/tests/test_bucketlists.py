@@ -1,17 +1,26 @@
 import json
-from nose.tools import assert_equal
-from nose.tools import assert_not_equal, assert_raises, raises, assert_in
-from ...imports import ns,app, envi, databases
+from flask_testing import TestCase
+from ...imports import app,api,ns,jwt, envi, databases
+from ...v1.models import User
 
-class TestBucketList():
+class TestBucketList(TestCase):
+    def create_app(self):
+        envi("Testing")
+        return app
+
     def setUp(self):
-        pass
+        databases.create_all()
 
     def tearDown(self):
-        pass
+        databases.session.remove()
+        databases.drop_all()
 
-    def test_validates_backetlist_name_before_creating_them(self):
-        assert_equal(True, True)
+    def test_requires_backetlist_name_before_creating_them(self):
+        payload = {"name":""}
+        response = self.client.post("/bucketlists", data=payload)
+        res_message = response.data.decode('Utf-8')
+        message = res_message['message']
+        self.assertEqual(message, "Bucketlist name is missing")
 
     def test_validates_token(self):
         assert_equal(True, True)
@@ -29,7 +38,7 @@ class TestBucketList():
         assert_equal(True,True)
 
     def test_can_delete_a_bucketlist(self):
-        assert_equal(True,True)
+        assert_equal(True, True)
 
     def test_can_add_an_item_to_a_backetlist(self):
         assert_equal(True,True)

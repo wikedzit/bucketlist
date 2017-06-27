@@ -2,7 +2,6 @@ import json
 from flask_testing import TestCase
 from ...imports import app,api,ns,jwt, envi, databases
 from ...v1.models import User
-from ...v1.routes import *
 
 class TestAuthentication(TestCase):
 
@@ -40,12 +39,19 @@ class TestAuthentication(TestCase):
         self.assertEqual(message, "User created")
 
     def test_no_ducplicated_usernames(self):
-        payload = {'username':"swikedzi@gmail.com", "password":"a133"}
+        payload = {'username':"swikedzi@gmail.com", "password" :"a133"}
         User(payload).store()
-        response = self.client.post("bucketlists", data=payload)
+        response = self.client.post("/auth/register", data=payload)
         res_message = response.data.decode('Utf-8')
         message = res_message['message']
         self.assertEqual(message, "Username not available")
+
+    def test_requires_username_and_password_to_login(self):
+        payload = {'username': "twikedzi@gmail.com"}
+        response = self.client.post("/auth/login", data=payload)
+        res_message = response.data.decode('Utf-8')
+        message = res_message['message']
+        self.assertEqual(message, "Both username and password are required")
 
     def test_user_can_login(self):
         response = self.client.get("/bucketlists/")

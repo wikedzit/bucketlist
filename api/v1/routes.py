@@ -116,14 +116,14 @@ class BucketList(Resource):
         """Create a new bucket"""
         try:
             data = api.payload.keys()
-            if ('name' in data):
+            if ('name' in data) and (not api.payload["name"].strip() == ""):
                 buck = Bucket(api.payload)
                 if buck.store():
                     return {'message': 'Bucket created'}, 204
                 else:
                     return {'message': 'Bucket could not be created'}
             else:
-
+                return {'message': 'Bucketlist name is missing'}
         except:
             return {'message': 'An error has occured, could not create a bucket'}
 
