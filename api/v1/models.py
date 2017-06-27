@@ -92,10 +92,13 @@ class User(db.Model, Eloquent):
 
     @classmethod
     def login(cls, uname="", pword=""):
-        user = User.where(username=uname).first()
-        if pwdc.verify(pword, user.password):
-            return user
-        return False
+        try:
+            user = User.where(username=uname).first()
+            if pwdc.verify(pword, user.password):
+                return user
+            return False
+        except:
+            return False
 
 
 class Bucket(db.Model, Eloquent):
@@ -128,4 +131,3 @@ class Item(db.Model, Eloquent):
         if payload:
             for attrb in payload.keys():
                 setattr(self, attrb, payload[attrb])
-

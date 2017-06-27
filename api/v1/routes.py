@@ -13,6 +13,7 @@ parser.add_argument('limit', type=int, help='Limit can only be a number')
 parser.add_argument('username')
 parser.add_argument('password')
 
+
 item = api.model('Item', {
     'id': fields.Integer(readOnly=True, description='The Item unique identifier'),
     'name': fields.String(required=True, description='The Item name'),
@@ -20,6 +21,7 @@ item = api.model('Item', {
     'date_modified': fields.DateTime(dt_format='rfc822'),
     'done': fields.Boolean
 })
+
 
 bucket = api.model('Bucket', {
     'id': fields.Integer(readOnly=True, description='The bucket unique identifier'),
@@ -51,6 +53,7 @@ class Auth(Resource):
     @ns.response(200, 'User Logged in')
     @ns.expect(auth)
     def post(self):
+
         data = api.payload.keys()
         if ('username' in data) and ('password' in data):
             email = r"(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$)"
@@ -61,7 +64,7 @@ class Auth(Resource):
                 usr = User.login(username, password)
                 if usr:
                     return {'access_token': create_access_token(identity=usr.id)}, 200
-                return {"message": "Incorrect username or password"}
+                return {"message": "User not found"}
             else:
                 return {"message": "Username must be a valid email address"}
         else:
@@ -79,12 +82,13 @@ class Users(Resource):
             email = r"(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$)"
             if re.match(email, api.payload['username']):
                 user_exists = User.where(username=api.payload['username']).first()
+
                 if user_exists:
                     return {"message": "Username not available"}, 404
                 else:
                     usr = User(api.payload)
                     usr.store()
-                    return {'message':"User created"}, 204
+                    return {"message": "User created"}, 204
             else:
                 return {"message": "Username must be a valid email address"}
         else:
@@ -95,8 +99,12 @@ class BucketList(Resource):
     """Shows a list of buckets for the authenticated user, and lets you POST to add new buckets"""
     @ns.doc('list_buckets')
     @ns.marshal_list_with(bucket)
+    @jwt_required
     def get(self):
         """List all buckets"""
+
+        current_user = get_jwt_identity()
+
         args = parser.parse_args()
         lmt = 20
         qword = None
