@@ -115,11 +115,15 @@ class BucketList(Resource):
     def post(self):
         """Create a new bucket"""
         try:
-            buck = Bucket(api.payload)
-            if buck.store():
-                return {'message': 'Bucket created'}, 204
+            data = api.payload.keys()
+            if ('name' in data):
+                buck = Bucket(api.payload)
+                if buck.store():
+                    return {'message': 'Bucket created'}, 204
+                else:
+                    return {'message': 'Bucket could not be created'}
             else:
-                return {'message': 'Bucket could not be created'}
+
         except:
             return {'message': 'An error has occured, could not create a bucket'}
 
@@ -216,3 +220,7 @@ class Items(Resource):
             return itm, 200
         else:
             return {'message': 'Item could not be updated'}, 404
+
+
+ns.add_resource(Buckets, '/bucketlists')
+api.add_resource(BucketList, '/bucketlists/<int:id>')
