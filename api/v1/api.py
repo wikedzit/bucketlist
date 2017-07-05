@@ -98,7 +98,7 @@ class Auth(Resource):
                 if usr:
                     access_token = create_access_token(identity=usr.id)
                     resp = jsonify({'login': True})
-                    set_access_cookies(resp, access_token)
+                    #set_access_cookies(resp, access_token)
                     return {'access_token': access_token, 'login': True}, 200
                     #return {'login': True}, 200
                 return {"message": "User not found"}
@@ -134,11 +134,15 @@ class BucketList(Resource):
         qword = None
         if args['limit']:
             lmt = int(args['limit'])
-            if (lmt > 0 and lmt <= 100):
-                return None
+            if lmt < 1:
+                lmt = 20
+            if lmt > 100:
+                lmt = 100
 
         if args['q']:
             qword = args['q']
+            if qword is None or qword == "":
+                qword = None
 
         buckets = Bucket.all(lmt=lmt, q=qword)
         return buckets
@@ -194,9 +198,9 @@ class Buckets(Resource):
         buck = Bucket.find(id)
         if buck:
             buck.delete()
-            return {'message': 'Bucket deleted'}, 204
+            return {'message': 'Bucketlist deleted'}, 204
         else:
-            return {'message': 'Bucket not found'}, 404
+            return {'message': 'Bucketlist not found'}, 404
 
     @ns.expect(bucket)
     @ns.marshal_with(bucket)

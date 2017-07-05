@@ -91,7 +91,7 @@ class User(db.Model, Eloquent):
             self.hash_password(payload["password"])
 
     def hash_password(self, password):
-        self.password = pwdc.encrypt(password)
+        self.password = pwdc.hash(password)
 
     def verify_password(self, password):
         return pwdc.verify(password, self.password)

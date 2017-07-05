@@ -1,9 +1,8 @@
 from .imports import *
 import json
 import unittest
-from flask_testing import TestCase
 from headers import app, envi, databases
-from models import User
+from models import User, Bucket
 
 
 class TestBucketList(unittest.TestCase):
@@ -16,53 +15,46 @@ class TestBucketList(unittest.TestCase):
         self.payload = dict(username="wikedzit@gmail.com", password="admin")
         User(self.payload).store()
 
-        response = self.app.post("api/v1/auth/login", data=self.payload)
+        response = self.app.post("/api/v1/auth/login", data=json.dumps(self.payload), headers={'Content-Type': 'application/json'})
         res_message = json.loads(response.data.decode('Utf-8'))
-        self.token = res_message["access_token"]
-        self.token = "Bearer {0}".format(self.token)
+        self.token = "Bearer {0}".format(res_message["access_token"])
 
     def tearDown(self):
         databases.session.remove()
         databases.drop_all()
 
+    def test_can_create_a_bucketlist(self):
+        bucket_payload = dict(name="Richest men alive")
+        response = self.app.post("/api/v1/bucketlists", data=json.dumps(bucket_payload), headers={'Content-Type': 'application/json', "Authorization": self.token})
+        self.assertEqual(201, response.status_code)
+        res_message = json.loads(response.data.decode('Utf-8'))
+        message = res_message['message']
+        self.assertEqual(message, "Bucketlist created")
+
     def test_requires_backetlist_name_before_creating_them(self):
-        payload = dict(name="")
-        response = self.app.post("/api/v1/bucketlists", data=payload)
+        bucket_payload = dict(name="")
+        response = self.app.post("/api/v1/bucketlists", data=json.dumps(bucket_payload), headers={'Content-Type': 'application/json', "Authorization": self.token})
         res_message = json.loads(response.data.decode('Utf-8'))
         message = res_message['message']
         self.assertEqual(message, "Bucketlist name is missing")
 
-    def test_requires_token_to_access_bucketlist(self):
-        response = self.app.get("/api/v1/bucketlists")
-        self.assertEqual(500, response.status.code)
-
-    def test_requires_active_user_to_create_bucketlists(self):
-        bucket_payload = dict(name="Natural Languages")
-        response = self.app.post("/api/v1/bucketlists", data=bucket_payload)
-        self.assertEqual(500, response.status.code)
-
-        response = self.app.post("api/v1/bucketlists", data=bucket_payload, headers={"Authorisation": self.token})
-        self.assertEqual(204, response.status_code)
-        res_message = json.loads(response.data.decode('Utf-8'))
-        message = res_message['message']
-        self.assertEqual(message, "Bucket Created")
+    def test_requires_valid_token_to_access_bucketlist(self):
+        response = self.app.get("/api/v1/bucketlists", headers={"Authorization": "Bearer invalid token"})
+        self.assertEqual(500, response.status_code)
 
     def test_user_can_only_access_own_bucketlists(self):
         self.assertTrue(True, True)
 
     def test_can_delete_a_bucketlist(self):
         bucket_payload = dict(name="Programming Languages")
-        response = self.app.post("api/v1/bucketlists", data=bucket_payload, headers={"Authorisation": self.token})
-        self.assertEqual(204, response.status_code)
+        response = self.app.post("/api/v1/bucketlists", data=json.dumps(bucket_payload), headers={'Content-Type': 'application/json', "Authorization": self.token})
+        self.assertEqual(201, response.status_code)
         res_message = json.loads(response.data.decode('Utf-8'))
         message = res_message['message']
-        self.assertEqual(message, "Bucket Created")
+        self.assertEqual(message, "Bucketlist created")
 
-        response = self.app.delete("api/v1/bucketlists/1", headers={"Authorisation": self.token})
-        res_message = json.loads(response.data.decode('Utf-8'))
-        message = res_message['message']
-        self.assertEqual(message, "Bucket deleted")
-        #Add a statuc code test
+        response = self.app.delete("/api/v1/bucketlists/1", headers={"Authorization": self.token})
+        self.assertEqual(204, response.status_code)
 
     def test_can_add_an_item_to_a_backetlist(self):
         self.assertTrue(True, True)
@@ -70,16 +62,26 @@ class TestBucketList(unittest.TestCase):
     def test_can_delete_an_item_from_a_bucketlist(self):
         self.assertTrue(True, True)
 
-    def test_pagination_limit_is_validated_to_number(self):
-        response = self.app.get("api/v1/bucketlists?limit=abcd", headers={"Authorisation": self.token})
-        self.assertTrue(response.data is None)
-
     def test_default_limit(self):
-        response = self.app.get("api/v1/bucketlists", headers={"Authorisation": self.token})
-        res_message = response.data.decode('Utf-8')
-        self.assertTrue(len(res_message) <= 20)
+        # create 100 bucketlists
+        for i in range(100):
+            name = "Bucket " + str(i)
+            payload = dict(name=name)
+            Bucket(payload).store()
+
+        response = self.app.get("/api/v1/bucketlists", headers={"Authorization": self.token})
+        self.assertEqual(response.status_code, 200)
+        buckets = json.loads(response.data.decode('Utf-8'))
+        self.assertEqual(len(buckets), 20)
 
     def test_maximum_limit(self):
-        response = self.app.get("api/v1/bucketlists?limit=200", headers={"Authorisation": self.token})
-        self.assertTrue(response.data is None)
+        # create 150 bucketlists
+        for i in range(150):
+            name = "Bucket " + str(i)
+            payload = dict(name=name)
+            Bucket(payload).store()
 
+        response = self.app.get("/api/v1/bucketlists?limit=200", headers={"Authorization": self.token})
+        self.assertEqual(response.status_code, 200)
+        buckets = json.loads(response.data.decode('Utf-8'))
+        self.assertEqual(len(buckets), 100)

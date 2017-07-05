@@ -9,11 +9,11 @@ class AppConfig(object):
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     WTF_CSRF_ENABLED = True
     SQLALCHEMY_DATABASE_URI = db_config['develop']
-    JWT_ACCESS_TOKEN_EXPIRES = timedelta(minutes=15)
-    JWT_TOKEN_LOCATION  = ['headers', 'cookies']
-    JWT_COOKIE_SECURE = False
-    JWT_ACCESS_COOKIE_PATH = '/api/v1/bucketlists/'
-    JWT_COOKIE_CSRF_PROTECT = False
+    #JWT_ACCESS_TOKEN_EXPIRES = timedelta(minutes=15)
+    #JWT_TOKEN_LOCATION  = ['headers', 'cookies']
+    #JWT_COOKIE_SECURE = False
+    #JWT_ACCESS_COOKIE_PATH = '/api/v1/bucketlists/'
+    #JWT_COOKIE_CSRF_PROTECT = False
 
 class Testing(AppConfig):
     TESTING = True
@@ -25,8 +25,8 @@ class Develop(AppConfig):
 class Production(AppConfig):
     DEBUG = False
     SQLALCHEMY_DATABASE_URI = db_config['production']
-    JWT_COOKIE_SECURE = True
-    JWT_COOKIE_CSRF_PROTECT = True
+    #JWT_COOKIE_SECURE = True
+    #JWT_COOKIE_CSRF_PROTECT = True
 
 app_config = {
     'Testing': Testing,
