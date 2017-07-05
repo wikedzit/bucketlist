@@ -1,4 +1,4 @@
-import imports
+from .imports import *
 import unittest
 import json
 
