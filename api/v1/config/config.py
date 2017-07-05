@@ -9,7 +9,7 @@ class AppConfig(object):
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     WTF_CSRF_ENABLED = True
     SQLALCHEMY_DATABASE_URI = db_config['develop']
-    #JWT_ACCESS_TOKEN_EXPIRES = timedelta(minutes=15)
+    JWT_ACCESS_TOKEN_EXPIRES = timedelta(minutes=15)
     #JWT_TOKEN_LOCATION  = ['headers', 'cookies']
     #JWT_COOKIE_SECURE = False
     #JWT_ACCESS_COOKIE_PATH = '/api/v1/bucketlists/'

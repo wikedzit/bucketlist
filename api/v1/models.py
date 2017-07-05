@@ -39,31 +39,30 @@ class Eloquent():
 
     # READING THE DATABASE
     @classmethod
-    def all(cls, lmt=0, q=None):
+    def all(cls, lmt=0, q=None, uid=0):
         qword = '%{0}%'.format(q)
-        user_id = get_jwt_identity()
-        if q:
-            return cls.query.filter(cls.name.ilike(qword)).filter(User.id == user_id).limit(lmt).all()
+        if uid != 0:
+            if q:
+                return cls.query.filter(cls.name.ilike(qword)).filter(cls.user_id == uid).limit(lmt).all()
+            else:
+                return cls.query.filter(cls.user_id == uid).limit(lmt).all()
         else:
-            return cls.query.filter(User.id == user_id).limit(lmt).all()
-
-    @classmethod
-    def allForUser(cls,user_id,lmt=0, q=None):
-        qword = '%{0}%'.format(q)
-        if q:
-            return cls.query.filter(cls.name.ilike(qword)).filter(User.id == user_id).limit(lmt).all()
-        else:
-            return cls.query.filter(User.id == user_id).limit(lmt).all()
+            if q:
+                return cls.query.filter(cls.name.ilike(qword)).limit(lmt).all()
+            else:
+                return cls.query.limit(lmt).all()
 
     @classmethod
     def first(cls):
         return cls.query.first()
 
     @classmethod
-    def find(cls, rid):
-        user_id = get_jwt_identity()
+    def find(cls, rid, uid=0):
         try:
-            record = cls.query.filter(cls.id == rid).filter(User.id == user_id).first()
+            if uid != 0:
+                record = cls.query.filter(cls.id == rid).filter(cls.user_id == uid).first()
+            else:
+                record = cls.query.filter(cls.id == rid).first()
             return record
         except:
             return None
@@ -106,7 +105,6 @@ class User(db.Model, Eloquent):
         except:
             return False
 
-
 class Bucket(db.Model, Eloquent):
     __tablename__ = 'bucket'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -116,13 +114,11 @@ class Bucket(db.Model, Eloquent):
     date_created = db.Column(db.DateTime, default=datetime.utcnow())
     date_modified = db.Column(db.DateTime, default=datetime.utcnow(), onupdate=datetime.utcnow())
 
-    def __init__(self, payload=None):
+    def __init__(self, payload=None, uid=0):
         if payload:
             for attrb in payload.keys():
                 setattr(self, attrb, payload[attrb])
-
-            user_id = get_jwt_identity()
-            self.user_id = user_id
+            self.user_id = uid
 2
 
 class Item(db.Model, Eloquent):

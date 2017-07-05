@@ -1,7 +1,7 @@
 import re
 
 from flask import jsonify
-from flask_jwt_extended import JWTManager, jwt_required, create_access_token, set_access_cookies
+from flask_jwt_extended import JWTManager, jwt_required, create_access_token, set_access_cookies, get_jwt_identity
 from flask_restplus import Resource, fields, reqparse
 
 from headers import app, api, ns, databases
@@ -144,7 +144,8 @@ class BucketList(Resource):
             if qword is None or qword == "":
                 qword = None
 
-        buckets = Bucket.all(lmt=lmt, q=qword)
+        user_id = get_jwt_identity()
+        buckets = Bucket.all(lmt=lmt, q=qword, uid=user_id)
         return buckets, 200  # OK
 
     @ns.doc('create_bucket')
@@ -163,7 +164,8 @@ class BucketList(Resource):
                 if bucket_exists:
                     return {'message': 'Bucket name already exists. Choose a different name to create a bucket'}, 406
 
-                buck = Bucket(api.payload)
+                user_id = get_jwt_identity()
+                buck = Bucket(api.payload, uid=user_id)
                 if buck.store():
                     return {'message': 'Bucketlist created'}, 201
                 else:
@@ -184,11 +186,12 @@ class Buckets(Resource):
     @jwt_required
     def get(self, id):
         """Fetch a given bucket"""
-        buck = Bucket.find(id)
+        user_id = get_jwt_identity()
+        buck = Bucket.find(id, user_id)
         if buck:
             return buck, 200
         else:
-            return {'message': 'Bucket not found'}, 404
+            return None, 404
 
     @ns.doc('delete_backet')
     @ns.response(204, 'Bucket deleted')
@@ -203,29 +206,28 @@ class Buckets(Resource):
             return {'message': 'Bucketlist not found'}, 404
 
     @ns.expect(bucket)
-    @ns.marshal_with(bucket)
     @jwt_required
     def put(self, id):
-        """Update a bucket given its identifier"""
+        """Update a bucketlist given its identifier"""
         if not api.payload:
             return {"message": "Payload missing"}, 400  # Bad request
 
-        buck = Bucket.find(id)
+        user_id = get_jwt_identity()
+        buck = Bucket.find(id, user_id)
         if buck:
             data = api.payload.keys()
             if 'name' in data:
                 name = api.payload["name"].strip()
                 # Check if there are changes
-                if buck.name == api.payload['name']:
-                    return {'message': 'Bucket name has not changed, update not allowed'}, 406  # Not allowed
+                if buck.name == name:
+                    return {"message": "Bucketlist name has not changed, update not allowed"}, 406  # Not allowed
                 if name != "":
                     if name != buck.name:
                         buck.put(api.payload)
-                        return buck, 200
+                        return {"message": "Bucketlist updated"}, 200
             return {'message': 'Bucketlist name is required'}, 400  # Bad request
         else:
             return {'message': 'Bucketlist not found in your collection'}, 404
-
 
 @ns.route('/bucketlists/<int:id>/items')
 @ns.param('id', 'The bucket identifier')
@@ -236,12 +238,15 @@ class ItemsList(Resource):
     @jwt_required
     def get(self, id):
         """List all items"""
-        items = Bucket.find(id).items
-        return items, 200
+        user_id = get_jwt_identity()
+        bucket = Bucket.find(id,user_id)
+        if bucket:
+            return bucket.items, 200
+        else:
+            return {"message": "You do not own a bucketlist with id {0}".format(id)}, 404
 
     @ns.doc('create_items')
     @ns.expect(item)
-    @ns.marshal_with(item, code=200)
     @jwt_required
     def post(self, id):
         """Create a new item"""
@@ -250,7 +255,8 @@ class ItemsList(Resource):
 
         data = api.payload.keys()
         if 'name' in data:
-            buck = Bucket.find(id)
+            user_id = get_jwt_identity()
+            buck = Bucket.find(id, user_id)
             if buck:
                 api.payload.update({'bucket_id': id})
                 item_exists = Item.where(name=api.payload['name'].strip(), bucket_id=id).first()
@@ -260,7 +266,7 @@ class ItemsList(Resource):
 
                 itm = Item(api.payload)
                 itm.store()
-                return itm, 200
+                return {'message': 'Added item to bucket {0}'.format(id)}, 201
             else:
                 return {'message': 'You do not own a bucket with id {0}'.format(id)}, 403  # Forbidden
         else:
@@ -278,20 +284,31 @@ class Items(Resource):
     @jwt_required
     def get(self, id, item_id):
         """Fetch a given bucket"""
-        itm = Item.where(id=item_id, bucket_id=id).first()
-        return itm, 200
+        user_id = get_jwt_identity()
+        buck = Bucket.find(id, user_id)
+        if buck:
+            itm = Item.where(id=item_id, bucket_id=id).first()
+            return itm, 200
+        else:
+            return {"message": "You do not own a bucketlist with id {0}".format(id)}, 404
 
     @ns.doc('delete_backet_item')
     @ns.response(204, 'Item deleted')
     @jwt_required
     def delete(self, id, item_id):
         """Delete a bucket given its identifier"""
-        itm = Item.where(id=item_id, bucket_id=id).first()
-        if itm:
-            itm.delete()
-            return {'message': 'Item deleted'}, 204
+        user_id = get_jwt_identity()
+        buck = Bucket.find(id, user_id)
+        if buck:
+            itm = Item.where(id=item_id, bucket_id=id).first()
+            if itm:
+                itm.delete()
+                return {'message': 'Item deleted'}, 204
+            else:
+                return {'message': 'Item not found'}, 404
         else:
-            return {'message': 'Item not found'}, 404
+            return {"message": "You do not own a bucketlist with id {0}".format(id)}, 404
+
 
     @ns.expect(bucket)
     @ns.marshal_with(bucket)
@@ -303,6 +320,11 @@ class Items(Resource):
 
         data = api.payload.keys()
         if 'name' in data:
+            user_id = get_jwt_identity()
+            buck = Bucket.find(id, user_id)
+            if not buck:
+                return {"message": "You do not own a bucketlist with id {0}".format(id)}, 404
+
             itm = Item.where(id=item_id, bucket_id=id).first()
 
             # Check if there are changes
@@ -316,6 +338,7 @@ class Items(Resource):
                 return {'message': 'Item not found'}, 404
         else:
             return {'message': 'Item name is required'}, 400  # Bad request
+
 
 # App launcher
 app.run(host='127.0.0.1', port=5000)
