@@ -58,7 +58,7 @@ class Users(Resource):
     def post(self):
         """Register a new user"""
         if not api.payload:
-            return {"message": "Payload missing"}, 404
+            return {"message": "Payload missing"}, 400 #this is a bad request
 
         data = api.payload.keys()
         if ('username' in data) and ('password' in data):
@@ -67,15 +67,15 @@ class Users(Resource):
                 user_exists = User.where(username=api.payload['username']).first()
 
                 if user_exists:
-                    return {"message": "Username already used. Use a different name to register"}, 404
+                    return {"message": "Username already used. Use a different name to register"}, 406  # This is not acceptable
                 else:
                     usr = User(api.payload)
                     usr.store()
-                    return {"message": "User created"}, 201
+                    return {"message": "User created"}, 201  # Resource is created and saved
             else:
-                return {"message": "Username must be a valid email address"}
+                return {"message": "Username must be a valid email address"}, 400  # Bad request
         else:
-            return {"message": "Both username and password are required"}
+            return {"message": "Both username and password are required"}, 400  # Bad request
 
 
 @ns.route('/auth/login')
@@ -86,7 +86,7 @@ class Auth(Resource):
     @ns.expect(auth)
     def post(self):
         if not api.payload:
-            return {"message": "Payload missing"}, 404
+            return {"message": "Payload missing"}, 400  # Bad request
         data = api.payload.keys()
         if ('username' in data) and ('password' in data):
             email = r"(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$)"
@@ -99,13 +99,13 @@ class Auth(Resource):
                     access_token = create_access_token(identity=usr.id)
                     resp = jsonify({'login': True})
                     #set_access_cookies(resp, access_token)
-                    return {'access_token': access_token, 'login': True}, 200
+                    return {'access_token': access_token, 'login': True}, 200  # OK
                     #return {'login': True}, 200
-                return {"message": "User not found"}
+                return {"message": "User not found"}, 404  #Reource not found
             else:
-                return {"message": "Username must be a valid email address"}
+                return {"message": "Username must be a valid email address"}, 400  # Bad request
         else:
-            return {"message": "Both username and password are required"}
+            return {"message": "Both username and password are required"}, 400  # Bad request
 
 
 """
@@ -145,7 +145,7 @@ class BucketList(Resource):
                 qword = None
 
         buckets = Bucket.all(lmt=lmt, q=qword)
-        return buckets
+        return buckets, 200  # OK
 
     @ns.doc('create_bucket')
     @ns.expect(bucket)
@@ -154,24 +154,24 @@ class BucketList(Resource):
         """Create a new bucket"""
         try:
             if not api.payload:
-                return {"message": "Payload missing"}, 404
+                return {"message": "Payload missing"}, 400  # Bad request
 
             data = api.payload.keys()
             if ('name' in data) and (not api.payload["name"].strip() == ""):
                 bucket_exists = Bucket.where(name=api.payload['name'].strip()).first()
 
                 if bucket_exists:
-                    return {'message': 'Bucket name already exists. Choose a different name to create a bucket'}, 404
+                    return {'message': 'Bucket name already exists. Choose a different name to create a bucket'}, 406
 
                 buck = Bucket(api.payload)
                 if buck.store():
                     return {'message': 'Bucketlist created'}, 201
                 else:
-                    return {'message': 'Bucketlist could not be created'}
+                    return {'message': 'Bucketlist could not be created'}, 500  # Error on server
             else:
-                return {'message': 'Bucketlist name is missing'}
+                return {'message': 'Bucketlist name is missing'}, 400  # Bad request
         except:
-            return {'message': 'An error has occured, could not create a bucketlist'}
+            return {'message': 'An error has occured, could not create a bucketlist'}, 500  #Error on server
 
 
 @ns.route('/bucketlists/<int:id>')
@@ -208,21 +208,21 @@ class Buckets(Resource):
     def put(self, id):
         """Update a bucket given its identifier"""
         if not api.payload:
-            return {"message": "Payload missing"}, 404
+            return {"message": "Payload missing"}, 400  # Bad request
 
         buck = Bucket.find(id)
         if buck:
             data = api.payload.keys()
             if 'name' in data:
                 name = api.payload["name"].strip()
+                # Check if there are changes
+                if buck.name == api.payload['name']:
+                    return {'message': 'Bucket name has not changed, update not allowed'}, 406  # Not allowed
                 if name != "":
                     if name != buck.name:
                         buck.put(api.payload)
                         return buck, 200
-                    else:
-                        return {'message': 'Bucketlist name is required'}
-
-            return {'message': 'Bucketlist name is required'}, 404
+            return {'message': 'Bucketlist name is required'}, 400  # Bad request
         else:
             return {'message': 'Bucketlist not found in your collection'}, 404
 
@@ -237,7 +237,7 @@ class ItemsList(Resource):
     def get(self, id):
         """List all items"""
         items = Bucket.find(id).items
-        return items
+        return items, 200
 
     @ns.doc('create_items')
     @ns.expect(item)
@@ -246,20 +246,29 @@ class ItemsList(Resource):
     def post(self, id):
         """Create a new item"""
         if not api.payload:
-            return {"message": "Payload missing"}, 404
+            return {"message": "Payload missing"}, 400  # Bad request
 
-        buck = Bucket.find(id)
-        if buck:
-            api.payload.update({'bucket_id': id})
-            itm = Item(api.payload)
-            itm.store()
-            return itm, 200
+        data = api.payload.keys()
+        if 'name' in data:
+            buck = Bucket.find(id)
+            if buck:
+                api.payload.update({'bucket_id': id})
+                item_exists = Item.where(name=api.payload['name'].strip(), bucket_id=id).first()
+
+                if item_exists:
+                    return {'message': 'Item name already used in this bucket. Choose a different name to add an item'}, 406
+
+                itm = Item(api.payload)
+                itm.store()
+                return itm, 200
+            else:
+                return {'message': 'You do not own a bucket with id {0}'.format(id)}, 403  # Forbidden
         else:
-            return {'message':'You do not own a bucket with id {0}'.format(id)}, 404
+            return {'message': 'Item name is required'}, 400  # Bad request
 
 
 @ns.route('/bucketlists/<int:id>/items/<int:item_id>')
-@ns.response(404, 'Bucket Item not found')
+@ns.response(200, 'Item found')
 @ns.param('id', 'The Bucket identifier')
 @ns.param('item_id', 'The Item identifier')
 class Items(Resource):
@@ -270,7 +279,7 @@ class Items(Resource):
     def get(self, id, item_id):
         """Fetch a given bucket"""
         itm = Item.where(id=item_id, bucket_id=id).first()
-        return itm
+        return itm, 200
 
     @ns.doc('delete_backet_item')
     @ns.response(204, 'Item deleted')
@@ -289,12 +298,24 @@ class Items(Resource):
     @jwt_required
     def put(self, id, item_id):
         """Update an Item given a bucket identifier and Item identifier"""
-        itm = Item.where(id=item_id, bucket_id=id).first()
-        if itm.put(api.payload):
-            return itm, 200
+        if not api.payload:
+            return {"message": "Payload missing"}, 400  # Bad request
+
+        data = api.payload.keys()
+        if 'name' in data:
+            itm = Item.where(id=item_id, bucket_id=id).first()
+
+            # Check if there are changes
+            if itm.name == api.payload['name']:
+                return {'message': 'Item name has not changed, update not allowed'}, 406  # Not allowed
+
+            if itm:
+                itm.put(api.payload)
+                return itm, 200
+            else:
+                return {'message': 'Item not found'}, 404
         else:
-            return {'message': 'Item could not be updated'}, 404
+            return {'message': 'Item name is required'}, 400  # Bad request
 
-
-#App laucher
+# App launcher
 app.run(host='127.0.0.1', port=5000)
