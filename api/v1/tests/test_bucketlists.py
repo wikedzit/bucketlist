@@ -1,9 +1,10 @@
+import imports
 import json
 
 from flask_testing import TestCase
 
-from ..headers import app, envi, databases
-from ..models import User
+from headers import app, envi, databases
+from models import User
 
 class TestBucketList(TestCase):
     def create_app(self):
