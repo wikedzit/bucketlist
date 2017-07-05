@@ -40,13 +40,14 @@ class Eloquent():
     @classmethod
     def all(cls, lmt=0, q=None):
         qword = '%{0}%'.format(q)
+        user_id = get_jwt_identity()
         if q:
-            return cls.query.limit(lmt).filter(cls.name.ilike(qword)).all()
+            return cls.query.filter(cls.name.ilike(qword)).filter(User.id == user_id).limit(lmt).all()
         else:
-            return cls.query.limit(lmt).all()
+            return cls.query.filter(User.id == user_id).limit(lmt).all()
 
     @classmethod
-    def allForUser(cls,user_id, lmt=0, q=None):
+    def allForUser(cls,user_id,lmt=0, q=None):
         qword = '%{0}%'.format(q)
         if q:
             return cls.query.filter(cls.name.ilike(qword)).filter(User.id == user_id).limit(lmt).all()
@@ -59,8 +60,9 @@ class Eloquent():
 
     @classmethod
     def find(cls, rid):
+        user_id = get_jwt_identity()
         try:
-            record = cls.query.get(rid)
+            record = cls.query.filter(cls.id == rid).filter(User.id == user_id).first()
             return record
         except:
             return None
@@ -117,9 +119,10 @@ class Bucket(db.Model, Eloquent):
         if payload:
             for attrb in payload.keys():
                 setattr(self, attrb, payload[attrb])
-            user = User.first()
-            self.user_id = user.id
 
+            user_id = get_jwt_identity()
+            self.user_id = user_id
+2
 
 class Item(db.Model, Eloquent):
     __tablename__ = 'item'

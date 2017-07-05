@@ -1,10 +1,12 @@
 import re
-from flask import jsonify, request, abort
-from ..imports import app, api, ns,envi, databases,jwt
-from ..v1.models import User, Bucket, Item
+from flask import jsonify
 from flask_restplus import Resource, fields, reqparse
-from flask_jwt_extended import jwt_required, create_access_token, get_jwt_identity
+from flask_jwt_extended import JWTManager, jwt_required, create_access_token, get_jwt_identity, set_access_cookies, unset_jwt_cookies
 
+from ..imports import app, api, ns, databases
+from ..v1.models import User, Bucket, Item
+
+jwt = JWTManager(app)
 databases.create_all()
 
 parser = reqparse.RequestParser()
@@ -46,6 +48,35 @@ auth = api.model('User', {
 })
 
 
+
+@ns.route('/auth/register')
+class Users(Resource):
+    """Shows a list of users for the authenticated user, and lets you POST to add new users"""
+    @ns.doc('register_user')
+    @ns.expect(user)
+    def post(self):
+        """Register a new user"""
+        if not api.payload:
+            return {"message": "Payload missing"}, 404
+
+        data = api.payload.keys()
+        if ('username' in data) and ('password' in data):
+            email = r"(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$)"
+            if re.match(email, api.payload['username']):
+                user_exists = User.where(username=api.payload['username']).first()
+
+                if user_exists:
+                    return {"message": "Username already used. Use a different name to register"}, 404
+                else:
+                    usr = User(api.payload)
+                    usr.store()
+                    return {"message": "User created"}, 201
+            else:
+                return {"message": "Username must be a valid email address"}
+        else:
+            return {"message": "Both username and password are required"}
+
+
 @ns.route('/auth/login')
 class Auth(Resource):
     """Shows a list of users for the authenticated user, and lets you POST to add new users"""
@@ -64,49 +95,30 @@ class Auth(Resource):
             if re.match(email, username):
                 usr = User.login(username, password)
                 if usr:
-                    return {'access_token': create_access_token(identity=usr.id)}, 200
+                    access_token = create_access_token(identity=usr.id)
+                    resp = jsonify({'login': True})
+                    set_access_cookies(resp, access_token)
+                    return {'access_token': access_token, 'login': True}, 200
+                    #return {'login': True}, 200
                 return {"message": "User not found"}
             else:
                 return {"message": "Username must be a valid email address"}
         else:
             return {"message": "Both username and password are required"}
 
-@ns.route('/auth/register')
-class Users(Resource):
-    """Shows a list of users for the authenticated user, and lets you POST to add new users"""
-    @ns.doc('register_user')
-    @ns.expect(user)
-    def post(self):
-        """Register a new user"""
-        data = api.payload.keys()
-        if ('username' in data) and ('password' in data):
-            email = r"(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$)"
-            if re.match(email, api.payload['username']):
-                user_exists = User.where(username=api.payload['username']).first()
 
-                if user_exists:
-                    return {"message": "Username not available"}, 404
-                else:
-                    usr = User(api.payload)
-                    usr.store()
-                    return {"message": "User created"}, 204
-            else:
-                return {"message": "Username must be a valid email address"}
-        else:
-            return {"message": "Both username and password are required"}
-
-
+"""
 # Using the expired_token_loader decorator, we will now call
 # this function whenever an expired but otherwise valid access
 # token attempts to access an endpoint
 @jwt.expired_token_loader
-def my_expired_token_callback():
+def expired_token_callback():
     return jsonify({
         'status': 401,
         'sub_status': 101,
         'msg': 'The token has expired'
     }), 200
-
+"""
 
 @ns.route('/bucketlists')
 class BucketList(Resource):
@@ -116,7 +128,6 @@ class BucketList(Resource):
     @jwt_required
     def get(self):
         """List all buckets"""
-
         args = parser.parse_args()
         lmt = 20
         qword = None
@@ -128,8 +139,7 @@ class BucketList(Resource):
         if args['q']:
             qword = args['q']
 
-        user_id = get_jwt_identity()
-        buckets = Bucket.allForUser(user_id=user_id, lmt=lmt, q=qword)
+        buckets = Bucket.all(lmt=lmt, q=qword)
         return buckets
 
     @ns.doc('create_bucket')
@@ -138,17 +148,25 @@ class BucketList(Resource):
     def post(self):
         """Create a new bucket"""
         try:
+            if not api.payload:
+                return {"message": "Payload missing"}, 404
+
             data = api.payload.keys()
             if ('name' in data) and (not api.payload["name"].strip() == ""):
+                bucket_exists = Bucket.where(name=api.payload['name'].strip()).first()
+
+                if bucket_exists:
+                    return {'message': 'Bucket name already exists. Choose a different name to create a bucket'}, 404
+
                 buck = Bucket(api.payload)
                 if buck.store():
-                    return {'message': 'Bucket created'}, 204
+                    return {'message': 'Bucketlist created'}, 201
                 else:
-                    return {'message': 'Bucket could not be created'}
+                    return {'message': 'Bucketlist could not be created'}
             else:
                 return {'message': 'Bucketlist name is missing'}
         except:
-            return {'message': 'An error has occured, could not create a bucket'}
+            return {'message': 'An error has occured, could not create a bucketlist'}
 
 
 @ns.route('/bucketlists/<int:id>')
@@ -184,11 +202,24 @@ class Buckets(Resource):
     @jwt_required
     def put(self, id):
         """Update a bucket given its identifier"""
+        if not api.payload:
+            return {"message": "Payload missing"}, 404
+
         buck = Bucket.find(id)
-        if buck.put(api.payload):
-            return buck, 200
+        if buck:
+            data = api.payload.keys()
+            if 'name' in data:
+                name = api.payload["name"].strip()
+                if name != "":
+                    if name != buck.name:
+                        buck.put(api.payload)
+                        return buck, 200
+                    else:
+                        return {'message': 'Bucketlist name is required'}
+
+            return {'message': 'Bucketlist name is required'}, 404
         else:
-            return {'message': 'Bucket could not be updated'}, 417
+            return {'message': 'Bucketlist not found in your collection'}, 404
 
 
 @ns.route('/bucketlists/<int:id>/items')
@@ -205,14 +236,21 @@ class ItemsList(Resource):
 
     @ns.doc('create_items')
     @ns.expect(item)
-    @ns.marshal_with(item, code=201)
+    @ns.marshal_with(item, code=200)
     @jwt_required
     def post(self, id):
         """Create a new item"""
-        api.payload.update({'bucket_id': id})
-        itm = Item(api.payload)
-        itm.store()
-        return itm, 201
+        if not api.payload:
+            return {"message": "Payload missing"}, 404
+
+        buck = Bucket.find(id)
+        if buck:
+            api.payload.update({'bucket_id': id})
+            itm = Item(api.payload)
+            itm.store()
+            return itm, 200
+        else:
+            return {'message':'You do not own a bucket with id {0}'.format(id)}, 404
 
 
 @ns.route('/bucketlists/<int:id>/items/<int:item_id>')
