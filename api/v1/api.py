@@ -1,10 +1,11 @@
 import re
-from flask import jsonify
-from flask_restplus import Resource, fields, reqparse
-from flask_jwt_extended import JWTManager, jwt_required, create_access_token, get_jwt_identity, set_access_cookies, unset_jwt_cookies
 
-from ..headers import app, api, ns, databases
-from ..v1.models import User, Bucket, Item
+from flask import jsonify
+from flask_jwt_extended import JWTManager, jwt_required, create_access_token, set_access_cookies
+from flask_restplus import Resource, fields, reqparse
+
+from headers import app, api, ns, databases
+from models import User, Bucket, Item
 
 jwt = JWTManager(app)
 databases.create_all()
@@ -291,6 +292,5 @@ class Items(Resource):
             return {'message': 'Item could not be updated'}, 404
 
 
-
-# app.run(host='127.0.0.1', port=1111)
-app.run()
+#App laucher
+app.run(host='127.0.0.1', port=5000)

@@ -1,7 +1,8 @@
 from datetime import datetime
-from passlib.apps import custom_app_context as pwdc
-from ..imports import databases as db
+
 from flask_jwt_extended import get_jwt_identity
+from passlib.apps import custom_app_context as pwdc
+from headers import databases as db
 
 
 class Eloquent():

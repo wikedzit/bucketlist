@@ -1,8 +1,8 @@
 import json
 import unittest
-from ...imports import envi
-from ....app import *
 
+from ..api import app
+from ..headers import envi
 
 class TestAuthentication(unittest.TestCase):
 
