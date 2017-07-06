@@ -251,7 +251,7 @@ class ItemsList(Resource):
     def get(self, id):
         """List all items"""
         user_id = get_jwt_identity()
-        bucket = Bucket.find(id,user_id)
+        bucket = Bucket.find(id, user_id)
         if bucket:
             return bucket.items, 200
         else:
@@ -350,7 +350,6 @@ class Items(Resource):
                 return {'message': 'Item not found'}, 404
         else:
             return {'message': 'Item name is required'}, 400  # Bad request
-
 
 # App launcher
 app.run()

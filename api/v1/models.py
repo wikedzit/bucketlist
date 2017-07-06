@@ -2,7 +2,7 @@ from datetime import datetime
 from passlib.apps import custom_app_context as pwdc
 from headers import databases as db
 
-class Eloquent():
+class Eloquent(): #Rename to base class
     def __init__(self):
         pass
 

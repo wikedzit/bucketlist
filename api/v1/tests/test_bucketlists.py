@@ -18,13 +18,14 @@ class TestBucketList(unittest.TestCase):
         response = self.app.post("/api/v1/auth/login", data=json.dumps(self.payload), headers={'Content-Type': 'application/json'})
         res_message = json.loads(response.data.decode('Utf-8'))
         self.token = "Bearer {0}".format(res_message["access_token"])
+        self.postheader = {'Content-Type':'', 'Authorization':self.token}
 
     def tearDown(self):
         databases.session.remove()
         databases.drop_all()
 
     def test_payload_required_for_posting(self):
-        response = self.app.post("/api/v1/bucketlists", data=json.dumps({}), headers={'Content-Type': 'application/json', "Authorization": self.token})
+        response = self.app.post("/api/v1/bucketlists", data=json.dumps({}), headers=self.postheader)
         self.assertEqual(400, response.status_code)
         res_message = json.loads(response.data.decode('Utf-8'))
         message = res_message['message']
