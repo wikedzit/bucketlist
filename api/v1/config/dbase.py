@@ -1,7 +1,8 @@
 default = "sqlite"
 
+
 def db(current=None):
-    if current is None
+    if current is None:
         current = "postgress"
     dbase = {
         "sqlite":{
@@ -19,4 +20,4 @@ def db(current=None):
 
     return dbase[current]
 
-db_config = db(default)
+db_config = db()
