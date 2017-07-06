@@ -1,6 +1,8 @@
-default = "postgres"
+default = "sqlite"
 
-def db(current):
+def db(current=None):
+    if current is None
+        current = "postgress"
     dbase = {
         "sqlite":{
             'test': 'sqlite:///bktest.db',
