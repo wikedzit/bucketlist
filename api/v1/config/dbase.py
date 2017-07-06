@@ -20,4 +20,4 @@ def db(current=None):
 
     return dbase[current]
 
-db_config = db()
+db_config = db(default)

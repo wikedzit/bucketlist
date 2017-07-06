@@ -150,13 +150,13 @@ class BucketList(Resource):
             if qword is None or qword == "":
                 qword = None
 
-        if args['page'] and lmt > 20:
+        if args['page']:
             page = int(args['page'])
             if page < 1:
                 page = 1
 
         user_id = get_jwt_identity()
-        buckets = Bucket.all(lmt=lmt, q=qword, uid=user_id)
+        buckets = Bucket.all(lmt=lmt, page=page, q=qword, uid=user_id)
         return buckets, 200  # OK
 
     @ns.doc('create_bucket')
