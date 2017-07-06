@@ -13,6 +13,7 @@ databases.create_all()
 parser = reqparse.RequestParser()
 parser.add_argument('q', type=str, help='Search word is a string')
 parser.add_argument('limit', type=int, help='Limit can only be a number')
+parser.add_argument('page', type=int, help='page can only be a number')
 parser.add_argument('username')
 parser.add_argument('password')
 
@@ -49,6 +50,24 @@ auth = api.model('User', {
 })
 
 
+# Using the expired_token_loader decorator, we will now call
+# this function whenever an expired but otherwise valid access
+# token attempts to access an endpoint
+@jwt.expired_token_loader
+def my_expired_token_callback():
+    return jsonify({
+        'status': 401,
+        'sub_status': 101,
+        'msg': 'The token has expired'
+    }), 200
+
+@jwt.invalid_token_loader
+def invalid_token_loader():
+    return jsonify({
+        'status': 406,
+        'sub_status': 101,
+        'msg': 'The token is invalid'
+    }), 200
 
 @ns.route('/auth/register')
 class Users(Resource):
@@ -107,20 +126,6 @@ class Auth(Resource):
         else:
             return {"message": "Both username and password are required"}, 400  # Bad request
 
-
-"""
-# Using the expired_token_loader decorator, we will now call
-# this function whenever an expired but otherwise valid access
-# token attempts to access an endpoint
-@jwt.expired_token_loader
-def expired_token_callback():
-    return jsonify({
-        'status': 401,
-        'sub_status': 101,
-        'msg': 'The token has expired'
-    }), 200
-"""
-
 @ns.route('/bucketlists')
 class BucketList(Resource):
     """Shows a list of buckets for the authenticated user, and lets you POST to add new buckets"""
@@ -132,6 +137,7 @@ class BucketList(Resource):
         args = parser.parse_args()
         lmt = 20
         qword = None
+        page=0
         if args['limit']:
             lmt = int(args['limit'])
             if lmt < 1:
@@ -143,6 +149,11 @@ class BucketList(Resource):
             qword = args['q']
             if qword is None or qword == "":
                 qword = None
+
+        if args['page']:
+            page = int(args['page'])
+            if page < 0:
+                page = 0
 
         user_id = get_jwt_identity()
         buckets = Bucket.all(lmt=lmt, q=qword, uid=user_id)
