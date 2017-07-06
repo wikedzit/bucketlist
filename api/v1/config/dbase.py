@@ -3,7 +3,7 @@ default = "sqlite"
 
 def db(current=None):
     if current is None:
-        current = "postgress"
+        current = "postgres"
     dbase = {
         "sqlite":{
             'test': 'sqlite:///bktest.db',
