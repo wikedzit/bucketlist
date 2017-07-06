@@ -30,6 +30,7 @@ bucket = api.model('Bucket', {
     'id': fields.Integer(readOnly=True, description='The bucket unique identifier'),
     'name': fields.String(required=True, description='The bucket name'),
     'items': fields.List(fields.Nested(item)),
+    'created_by': fields.Integer(readOnly=True, description='The bucket owner', attribute='user_id'),
     'date_created': fields.DateTime(dt_format='rfc822'),
     'date_modified': fields.DateTime(dt_format='rfc822'),
 })
