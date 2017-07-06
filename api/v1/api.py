@@ -1,5 +1,4 @@
 import re
-
 from flask import jsonify
 from flask_jwt_extended import JWTManager, jwt_required, create_access_token, set_access_cookies, get_jwt_identity
 from flask_restplus import Resource, fields, reqparse
@@ -69,6 +68,7 @@ def invalid_token_loader():
         'msg': 'The token is invalid'
     }), 200
 
+
 @ns.route('/auth/register')
 class Users(Resource):
     """Shows a list of users for the authenticated user, and lets you POST to add new users"""
@@ -137,7 +137,7 @@ class BucketList(Resource):
         args = parser.parse_args()
         lmt = 20
         qword = None
-        page=0
+        page=1
         if args['limit']:
             lmt = int(args['limit'])
             if lmt < 1:
@@ -150,10 +150,10 @@ class BucketList(Resource):
             if qword is None or qword == "":
                 qword = None
 
-        if args['page']:
+        if args['page'] and lmt > 20:
             page = int(args['page'])
-            if page < 0:
-                page = 0
+            if page < 1:
+                page = 1
 
         user_id = get_jwt_identity()
         buckets = Bucket.all(lmt=lmt, q=qword, uid=user_id)

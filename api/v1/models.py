@@ -1,9 +1,6 @@
 from datetime import datetime
-
-from flask_jwt_extended import get_jwt_identity
 from passlib.apps import custom_app_context as pwdc
 from headers import databases as db
-
 
 class Eloquent():
     def __init__(self):
@@ -39,18 +36,19 @@ class Eloquent():
 
     # READING THE DATABASE
     @classmethod
-    def all(cls, lmt=0, q=None, uid=0):
+    def all(cls, lmt=0, page=1, q=None, uid=0):
         qword = '%{0}%'.format(q)
+        offset = (page-1)*lmt
         if uid != 0:
             if q:
-                return cls.query.filter(cls.name.ilike(qword)).filter(cls.user_id == uid).limit(lmt).all()
+                return cls.query.filter(cls.name.ilike(qword)).filter(cls.user_id == uid).offset(offset).limit(lmt).all()
             else:
-                return cls.query.filter(cls.user_id == uid).limit(lmt).all()
+                return cls.query.filter(cls.user_id == uid).offset(offset).limit(lmt).all()
         else:
             if q:
-                return cls.query.filter(cls.name.ilike(qword)).limit(lmt).all()
+                return cls.query.filter(cls.name.ilike(qword)).offset(offset).limit(lmt).all()
             else:
-                return cls.query.limit(lmt).all()
+                return cls.query.offset(offset).limit(lmt).all()
 
     @classmethod
     def first(cls):
