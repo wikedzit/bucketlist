@@ -1,4 +1,4 @@
-default = "sqlite"
+default = "postgres"
 
 
 def db(current=None):
@@ -12,9 +12,9 @@ def db(current=None):
         },
 
         "postgres": {
-            'test': 'postgresql://@127.0.0.1/bktest',
-            'develop': 'postgresql://@127.0.0.1/bkdevelop',
-            'production': 'postgresql://@127.0.0.1/bkproduction'
+            'test': 'postgresl://@127.0.0.1/bktest',
+            'develop': 'postgresl://@127.0.0.1/bkdevelop',
+            'production': 'postgresl://@127.0.0.1/bkproduction'
         }
     }
 
