@@ -30,6 +30,23 @@ class TestAuthentication(unittest.TestCase):
         message = res_message['message']
         self.assertEqual(message, "Username must be a valid email address")
 
+    def test_checks_for_empty_username_during_registration(self):
+        payload = dict(username="", password="admin")
+        response = self.app.post("/api/v1/auth/register", data=json.dumps(payload), headers={'Content-Type': 'application/json'})
+        self.assertEqual(400, response.status_code)
+        res_message = json.loads(response.data.decode('Utf-8'))
+        message = res_message['message']
+        self.assertEqual(message, "Both username and password are required")
+
+    def test_checks_for_empty_password_during_registration(self):
+        payload = dict(username="tbangu@gmail.com", password="")
+        response = self.app.post("/api/v1/auth/register", data=json.dumps(payload), headers={'Content-Type': 'application/json'})
+        self.assertEqual(400, response.status_code)
+        res_message = json.loads(response.data.decode('Utf-8'))
+        message = res_message['message']
+        self.assertEqual(message, "Both username and password are required")
+
+
     def test_user_can_register(self):
         payload = dict(username="jchambile@gmail.com", password="user")
         response = self.app.post("/api/v1/auth/register", data=json.dumps(payload), headers={'Content-Type': 'application/json'})
