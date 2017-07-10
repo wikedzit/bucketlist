@@ -2,7 +2,7 @@ from datetime import datetime
 from passlib.apps import custom_app_context as pwdc
 from headers import databases as db
 
-class Eloquent(): #Rename to base class
+class BaseModel(): #Rename to base class
 
     # WRITING THE DATABASE
     # Commit values to the database
@@ -68,7 +68,7 @@ class Eloquent(): #Rename to base class
         return cls.query.filter_by(**kwargs)
 
 
-class User(db.Model, Eloquent):
+class User(db.Model, BaseModel):
     __tablename__ = 'user'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     username = db.Column(db.String(250), nullable=False)
@@ -101,7 +101,7 @@ class User(db.Model, Eloquent):
         except:
             return False
 
-class Bucket(db.Model, Eloquent):
+class Bucket(db.Model, BaseModel):
     __tablename__ = 'bucket'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     name = db.Column(db.String(250), nullable=False)
@@ -117,7 +117,7 @@ class Bucket(db.Model, Eloquent):
             self.user_id = uid
 2
 
-class Item(db.Model, Eloquent):
+class Item(db.Model, BaseModel):
     __tablename__ = 'item'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     name = db.Column(db.String(250), nullable=False)
