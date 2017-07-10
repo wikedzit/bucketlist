@@ -122,10 +122,7 @@ class Auth(Resource):
                 usr = User.login(username, password)
                 if usr:
                     access_token = create_access_token(identity=usr.id)
-                    resp = jsonify({'login': True})
-                    #set_access_cookies(resp, access_token)
                     return {'access_token': access_token, 'login': True}, 200  # OK
-                    #return {'login': True}, 200
                 return {"message": "User not found"}, 404  #Reource not found
             else:
                 return {"message": "Username must be a valid email address"}, 400  # Bad request
