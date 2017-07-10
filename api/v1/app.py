@@ -82,9 +82,14 @@ class Users(Resource):
 
         data = api.payload.keys()
         if ('username' in data) and ('password' in data):
+            username = api.payload['username'].strip()
+            password = api.payload['password'].strip()
+            if username == "" or password == "":
+                return {"message": "Both username and password are required"}, 400  # Bad request
+
             email = r"(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$)"
-            if re.match(email, api.payload['username']):
-                user_exists = User.where(username=api.payload['username']).first()
+            if re.match(email, username):
+                user_exists = User.where(username=username).first()
 
                 if user_exists:
                     return {"message": "Username already used. Use a different name to register"}, 406  # This is not acceptable
