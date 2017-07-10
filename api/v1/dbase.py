@@ -1,4 +1,4 @@
-default = "postgres"
+default = "sqlite"
 
 
 def db(current=None):

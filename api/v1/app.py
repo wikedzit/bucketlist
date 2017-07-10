@@ -185,7 +185,7 @@ class BucketList(Resource):
             else:
                 return {'message': 'Bucketlist name is missing'}, 400  # Bad request
         except:
-            return {'message': 'An error has occured, could not create a bucketlist'}, 500  #Error on server
+            return {'message': 'An error has occured, could not create a bucketlistAPI'}, 500  #Error on server
 
 
 @ns.route('/bucketlists/<int:id>')
@@ -220,7 +220,7 @@ class Buckets(Resource):
     @ns.expect(bucket)
     @jwt_required
     def put(self, id):
-        """Update a bucketlist given its identifier"""
+        """Update a bucketlistAPI given its identifier"""
         if not api.payload:
             return {"message": "Payload missing"}, 400  # Bad request
 
@@ -255,7 +255,7 @@ class ItemsList(Resource):
         if bucket:
             return bucket.items, 200
         else:
-            return {"message": "You do not own a bucketlist with id {0}".format(id)}, 404
+            return {"message": "You do not own a bucketlistAPI with id {0}".format(id)}, 404
 
     @ns.doc('create_items')
     @ns.expect(item)
@@ -302,7 +302,7 @@ class Items(Resource):
             itm = Item.where(id=item_id, bucket_id=id).first()
             return itm, 200
         else:
-            return {"message": "You do not own a bucketlist with id {0}".format(id)}, 404
+            return {"message": "You do not own a bucketlistAPI with id {0}".format(id)}, 404
 
     @ns.doc('delete_backet_item')
     @ns.response(204, 'Item deleted')
@@ -319,7 +319,7 @@ class Items(Resource):
             else:
                 return {'message': 'Item not found'}, 404
         else:
-            return {"message": "You do not own a bucketlist with id {0}".format(id)}, 404
+            return {"message": "You do not own a bucketlistAPI with id {0}".format(id)}, 404
 
 
     @ns.expect(bucket)
@@ -335,7 +335,7 @@ class Items(Resource):
             user_id = get_jwt_identity()
             buck = Bucket.find(id, user_id)
             if not buck:
-                return {"message": "You do not own a bucketlist with id {0}".format(id)}, 404
+                return {"message": "You do not own a bucketlistAPI with id {0}".format(id)}, 404
 
             itm = Item.where(id=item_id, bucket_id=id).first()
 

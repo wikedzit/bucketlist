@@ -1,8 +1,8 @@
 from .imports import *
 import json
 import unittest
-from headers import app, envi, databases
-from models import User, Bucket
+from headers import envi, databases
+from app import app, User, Bucket
 
 
 class TestBucketList(unittest.TestCase):

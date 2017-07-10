@@ -24,4 +24,5 @@ pytz==2017.2
 simplekv==0.10.0
 six==1.10.0
 SQLAlchemy==1.1.10
+SQLAlchemy-Utils==0.32.14
 Werkzeug==0.12.2

@@ -1,10 +1,8 @@
 from .imports import *
 import json
 import unittest
-
-from api import app
 from headers import envi, databases
-from models import User
+from app import app, User
 
 
 class TestAuthentication(unittest.TestCase):

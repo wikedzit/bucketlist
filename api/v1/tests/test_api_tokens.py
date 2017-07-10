@@ -3,8 +3,8 @@ import json
 import unittest
 from datetime import timedelta
 import time
-from headers import app, envi, databases
-from models import User, Bucket
+from headers import envi, databases
+from app import app, User
 
 
 class TestToken(unittest.TestCase):

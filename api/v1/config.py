@@ -1,6 +1,6 @@
 import os
 from datetime import timedelta
-from . dbase import db_config
+from dbase import db_config
 
 class AppConfig(object):
     DEBUG = True
