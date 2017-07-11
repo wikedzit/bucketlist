@@ -2,7 +2,7 @@ from .imports import *
 import json
 import unittest
 from headers import envi, databases
-from app import app, User, Bucket
+from endpoints import app, User, Bucket
 
 
 class TestBucketList(unittest.TestCase):
@@ -105,7 +105,7 @@ class TestBucketList(unittest.TestCase):
         self.assertEqual(message, "Bucketlist created")
 
         response = self.app.delete("/api/v1/bucketlists/1", headers={"Authorization": self.token})
-        self.assertEqual(204, response.status_code)
+        self.assertEqual(200, response.status_code)
 
     def test_can_add_an_item_to_a_backetlist(self):
         bucket_payload = dict(name="New Testament")
@@ -130,9 +130,9 @@ class TestBucketList(unittest.TestCase):
         self.assertIn("Genesis", string_res_message)
 
         response = self.app.delete("/api/v1/bucketlists/1/items/1",  headers={"Authorization": self.token})
-        self.assertEqual(response.status_code, 204)
-        string_res_message = response.data.decode('Utf-8')
-        self.assertEquals("", string_res_message)
+        self.assertEqual(response.status_code, 200)
+        string_res_message = json.loads(response.data.decode('Utf-8'))
+        self.assertEquals("Item deleted", string_res_message['message'])
 
 
     def test_default_limit(self):
@@ -168,3 +168,7 @@ class TestBucketList(unittest.TestCase):
         buckets = json.loads(response.data.decode('Utf-8'))
 
         self.assertEqual(buckets[0]['name'], "Laravel Framework")
+
+
+if __name__ == '__main__':
+    unittest.main()

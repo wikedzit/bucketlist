@@ -394,6 +394,3 @@ class Items(Resource):
                 return {'message': 'Item not found'}, 404
         else:
             return {'message': 'Item name is required'}, 400  # Bad request
-
-# App launcher  `
-app.run()

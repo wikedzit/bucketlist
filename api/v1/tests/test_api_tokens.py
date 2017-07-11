@@ -4,7 +4,7 @@ import unittest
 from datetime import timedelta
 import time
 from headers import envi, databases
-from app import app, User
+from endpoints import app, User
 
 
 class TestToken(unittest.TestCase):
@@ -16,7 +16,6 @@ class TestToken(unittest.TestCase):
 
         self.payload = dict(username="wikedzit@gmail.com", password="admin")
         User(self.payload).store()
-
 
     def tearDown(self):
         databases.session.remove()
@@ -34,3 +33,7 @@ class TestToken(unittest.TestCase):
 
         response = self.app.get("/api/v1/bucketlists", headers={"Authorization": token})
         self.assertEqual(500, response.status_code)
+
+
+if __name__ == '__main__':
+    unittest.main()

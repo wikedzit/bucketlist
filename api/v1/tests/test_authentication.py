@@ -2,7 +2,7 @@ from .imports import *
 import json
 import unittest
 from headers import envi, databases
-from app import app, User
+from endpoints import app, User
 
 
 class TestAuthentication(unittest.TestCase):
@@ -77,3 +77,6 @@ class TestAuthentication(unittest.TestCase):
         self.assertEqual(200, response.status_code)
         res_message = json.loads(response.data.decode('Utf-8'))
         self.assertIn('access_token', res_message.keys())
+
+if __name__ == '__main__':
+    unittest.main()
