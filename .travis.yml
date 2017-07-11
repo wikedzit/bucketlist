@@ -5,15 +5,10 @@ python:
 install:
   - "pip install -r requirements.txt"
   - "pip install coveralls"
-
-before_script:
-  - "cd api/v1"
-  - "python manage.py databases init"
-  - "python manage.py databases migrate"
-  - "python manage.py databases upgrade"
+  - "pip install coverage"
 
 script:
-  - nosetests --cover-erase  --cover-package=. --with-coverage
+  - nosetests -v --cover-erase  --cover-package=. --with-coverage --cover-tests
 
 after_success:
   - coveralls
