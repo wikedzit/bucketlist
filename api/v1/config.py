@@ -10,6 +10,10 @@ class AppConfig(object):
     WTF_CSRF_ENABLED = True
     SQLALCHEMY_DATABASE_URI = db_config['develop']
     JWT_ACCESS_TOKEN_EXPIRES = timedelta(minutes=15)
+    RESTPLUS_VALIDATE = True
+    SWAGGER_UI_DOC_EXPANSION = 'list'
+    SWAGGER_UI_JSONEDITOR = False
+
 class Testing(AppConfig):
     TESTING = True
     SQLALCHEMY_DATABASE_URI = db_config['test']

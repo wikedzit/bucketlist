@@ -1,11 +1,12 @@
 import re
 from flask import jsonify
-from flask_jwt_extended import JWTManager, jwt_required, create_access_token, set_access_cookies, get_jwt_identity
+from flask_jwt_extended import JWTManager, jwt_required, create_access_token, get_jwt_identity
 from flask_restplus import Resource, fields, reqparse
-
-from headers import app, api, ns, databases
+from headers import app, api, databases
 from models import User, Bucket, Item
 
+
+ns = api.namespace('api/v1', description='Bucketlist operations')
 jwt = JWTManager(app)
 databases.create_all()
 
@@ -17,6 +18,10 @@ parser.add_argument('username')
 parser.add_argument('password')
 
 
+add_item = api.model('Item', {
+    'name': fields.String(required=True, description='The Item name'),
+})
+
 item = api.model('Item', {
     'id': fields.Integer(readOnly=True, description='The Item unique identifier'),
     'name': fields.String(required=True, description='The Item name'),
@@ -26,6 +31,10 @@ item = api.model('Item', {
 })
 
 
+add_bucket = api.model('Bucket', {
+    'name': fields.String(required=True, description='The bucket name'),
+})
+
 bucket = api.model('Bucket', {
     'id': fields.Integer(readOnly=True, description='The bucket unique identifier'),
     'name': fields.String(required=True, description='The bucket name'),
@@ -34,7 +43,6 @@ bucket = api.model('Bucket', {
     'date_created': fields.DateTime(dt_format='rfc822'),
     'date_modified': fields.DateTime(dt_format='rfc822'),
 })
-
 
 user = api.model('User', {
     'id': fields.Integer(readOnly=True, description='The user unique identifier'),
@@ -50,31 +58,31 @@ auth = api.model('User', {
 })
 
 
-# Using the expired_token_loader decorator, we will now call
-# this function whenever an expired but otherwise valid access
-# token attempts to access an endpoint
 @jwt.expired_token_loader
-def my_expired_token_callback():
-    return jsonify({
-        'status': 401,
-        'sub_status': 101,
-        'msg': 'The token has expired'
-    }), 200
+def error_handler(e):
+    data = {
+            "code":e.status_code,
+            "message":e.error+" "+e.description
+        }
+    return jsonify(data), 400
+
 
 @jwt.invalid_token_loader
-def invalid_token_loader():
-    return jsonify({
-        'status': 406,
-        'sub_status': 101,
-        'msg': 'The token is invalid'
-    }), 200
-
+def error_handler(e):
+    data = {
+            "code":e.status_code,
+            "message":e.error+" "+e.description
+        }
+    return jsonify(data), 400
 
 @ns.route('/auth/register')
 class Users(Resource):
     """Shows a list of users for the authenticated user, and lets you POST to add new users"""
     @ns.doc('register_user')
-    @ns.expect(user)
+    @ns.expect(auth)
+    @ns.response(201, 'User Created')
+    @ns.response(400, 'Invalid Request')
+    @ns.response(406, 'Registration request not accepted')
     def post(self):
         """Register a new user"""
         if not api.payload:
@@ -108,8 +116,10 @@ class Auth(Resource):
     """Shows a list of users for the authenticated user, and lets you POST to add new users"""
     @ns.doc('login_user')
     @ns.response(200, 'User Logged in')
+    @ns.response(400, 'Invalid Request')
     @ns.expect(auth)
     def post(self):
+        """Login existing user"""
         if not api.payload:
             return {"message": "Payload missing"}, 400  # Bad request
         data = api.payload.keys()
@@ -129,18 +139,22 @@ class Auth(Resource):
         else:
             return {"message": "Both username and password are required"}, 400  # Bad request
 
+
 @ns.route('/bucketlists')
+@ns.header('Authorization', 'Access token', required=True)
 class BucketList(Resource):
+
     """Shows a list of buckets for the authenticated user, and lets you POST to add new buckets"""
     @ns.doc('list_buckets')
     @ns.marshal_list_with(bucket)
+    @ns.response(200, 'OK')
     @jwt_required
     def get(self):
-        """List all buckets"""
+        """List bucketlists"""
         args = parser.parse_args()
         lmt = 20
         qword = None
-        page=1
+        page = 1
         if args['limit']:
             lmt = int(args['limit'])
             if lmt < 1:
@@ -160,13 +174,18 @@ class BucketList(Resource):
 
         user_id = get_jwt_identity()
         buckets = Bucket.all(lmt=lmt, page=page, q=qword, uid=user_id)
+        #buckets = Bucket.paginate(page, lmt, False)
         return buckets, 200  # OK
 
     @ns.doc('create_bucket')
-    @ns.expect(bucket)
+    @ns.expect(add_bucket)
+    @ns.response(201, 'Bucketlist Created')
+    @ns.response(400, 'Invalid Request')
+    @ns.response(406, 'Registration request not accepted')
+    @ns.response(500, 'Internal error,failed to created a bucketlist ')
     @jwt_required
     def post(self):
-        """Create a new bucket"""
+        """Create a new bucketlist"""
         try:
             if not api.payload:
                 return {"message": "Payload missing"}, 400  # Bad request
@@ -187,16 +206,19 @@ class BucketList(Resource):
             else:
                 return {'message': 'Bucketlist name is missing'}, 400  # Bad request
         except:
-            return {'message': 'An error has occured, could not create a bucketlistAPI'}, 500  #Error on server
+            return {'message': 'An error has occured, could not create a bucketlist'}, 500  #Error on server
 
 
 @ns.route('/bucketlists/<int:id>')
-@ns.response(404, 'Backet not found')
+@ns.header('Authorization', 'Access token', required=True)
 @ns.param('id', 'The bucket identifier')
 class Buckets(Resource):
     """Show a single bucket and lets you update or delete them"""
     @ns.doc('get_bucket')
     @ns.marshal_with(bucket)
+    @ns.response(200, 'OK')
+    @ns.response(400, 'Invalid Request')
+    @ns.response(404, 'Resource not found')
     @jwt_required
     def get(self, id):
         """Fetch a given bucket"""
@@ -208,21 +230,27 @@ class Buckets(Resource):
             return None, 404
 
     @ns.doc('delete_backet')
-    @ns.response(204, 'Bucket deleted')
+    @ns.response(200, 'Bucketlist deleted')
+    @ns.response(404, 'Resource not found')
     @jwt_required
     def delete(self, id):
-        """Delete a bucket given its identifier"""
-        buck = Bucket.find(id)
+        """Delete a bucketlist given its identifier"""
+        user_id = get_jwt_identity()
+        buck = Bucket.find(id, user_id)
         if buck:
             buck.delete()
-            return {'message': 'Bucketlist deleted'}, 204
+            return {'message': 'Bucketlist deleted'}, 200
         else:
             return {'message': 'Bucketlist not found'}, 404
 
-    @ns.expect(bucket)
+    @ns.expect(add_bucket)
+    @ns.response(200, 'OK')
+    @ns.response(400, 'Invalid Request')
+    @ns.response(404, 'Resource not found')
+    @ns.response(406, 'Update request not accepted')
     @jwt_required
     def put(self, id):
-        """Update a bucketlistAPI given its identifier"""
+        """Update a bucketlist given its identifier"""
         if not api.payload:
             return {"message": "Payload missing"}, 400  # Bad request
 
@@ -243,15 +271,19 @@ class Buckets(Resource):
         else:
             return {'message': 'Bucketlist not found in your collection'}, 404
 
+
 @ns.route('/bucketlists/<int:id>/items')
 @ns.param('id', 'The bucket identifier')
+@ns.header('Authorization', 'Access token', required=True)
 class ItemsList(Resource):
-    """Shows a list of items in a given bucket, and lets you POST to add new items"""
+    """Shows a list of items in a given bucketlist, and lets you POST to add new items"""
     @ns.doc('list_items')
     @ns.marshal_list_with(item)
+    @ns.response(200, 'OK')
+    @ns.response(404, 'Resource not found')
     @jwt_required
     def get(self, id):
-        """List all items"""
+        """List all items in a bucketlist"""
         user_id = get_jwt_identity()
         bucket = Bucket.find(id, user_id)
         if bucket:
@@ -260,10 +292,14 @@ class ItemsList(Resource):
             return {"message": "You do not own a bucketlistAPI with id {0}".format(id)}, 404
 
     @ns.doc('create_items')
-    @ns.expect(item)
+    @ns.expect(add_item)
+    @ns.response(200, 'OK')
+    @ns.response(400, 'Invalid Request')
+    @ns.response(403, 'Access is forbidden')
+    @ns.response(406, 'Create request not accepted')
     @jwt_required
     def post(self, id):
-        """Create a new item"""
+        """Add a new item to a bucketlist"""
         if not api.payload:
             return {"message": "Payload missing"}, 400  # Bad request
 
@@ -288,16 +324,18 @@ class ItemsList(Resource):
 
 
 @ns.route('/bucketlists/<int:id>/items/<int:item_id>')
-@ns.response(200, 'Item found')
+@ns.header('Authorization', 'Access token', required=True)
 @ns.param('id', 'The Bucket identifier')
 @ns.param('item_id', 'The Item identifier')
 class Items(Resource):
-    """Show a single bucket item and lets you update or delete them"""
+    """Show a single bucketlist item and lets you update or delete them"""
     @ns.doc('get_bucket_item')
     @ns.marshal_with(item)
+    @ns.response(200, 'OK')
+    @ns.response(404, 'Resource not found')
     @jwt_required
     def get(self, id, item_id):
-        """Fetch a given bucket"""
+        """Fetch a given bucketlist item"""
         user_id = get_jwt_identity()
         buck = Bucket.find(id, user_id)
         if buck:
@@ -307,28 +345,32 @@ class Items(Resource):
             return {"message": "You do not own a bucketlistAPI with id {0}".format(id)}, 404
 
     @ns.doc('delete_backet_item')
-    @ns.response(204, 'Item deleted')
+    @ns.response(200, 'Successful Delete')
+    @ns.response(404, 'Resource not found')
     @jwt_required
     def delete(self, id, item_id):
-        """Delete a bucket given its identifier"""
+        """Delete a bucketlist item given its identifier"""
         user_id = get_jwt_identity()
         buck = Bucket.find(id, user_id)
         if buck:
             itm = Item.where(id=item_id, bucket_id=id).first()
             if itm:
                 itm.delete()
-                return {'message': 'Item deleted'}, 204
+                return {'message': 'Item deleted'}, 200
             else:
                 return {'message': 'Item not found'}, 404
         else:
-            return {"message": "You do not own a bucketlistAPI with id {0}".format(id)}, 404
+            return {"message": "You do not own a bucketlist with id {0}".format(id)}, 404
 
-
-    @ns.expect(bucket)
-    @ns.marshal_with(bucket)
+    @ns.expect(add_item)
+    @ns.marshal_with(add_item)
+    @ns.response(200, 'OK')
+    @ns.response(400, 'Invalid Request')
+    @ns.response(404, 'Resource not found')
+    @ns.response(406, 'Update request not accepted')
     @jwt_required
     def put(self, id, item_id):
-        """Update an Item given a bucket identifier and Item identifier"""
+        """Update an Item given a bucketlist identifier and Item identifier"""
         if not api.payload:
             return {"message": "Payload missing"}, 400  # Bad request
 
@@ -353,5 +395,5 @@ class Items(Resource):
         else:
             return {'message': 'Item name is required'}, 400  # Bad request
 
-# App launcher
+# App launcher  `
 app.run()

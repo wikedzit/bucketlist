@@ -2,7 +2,7 @@ from flask_migrate import Migrate, MigrateCommand
 from flask_script import Manager
 from sqlalchemy_utils.functions import create_database, drop_database
 
-from api.v1.headers import app, databases
+from headers import app, databases
 
 migrate = Migrate(app, databases)
 manager = Manager(app)
