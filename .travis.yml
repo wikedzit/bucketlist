@@ -13,8 +13,9 @@ install:
   - "pip install coveralls"
 
 before_script:
-  - "python manage.py dropdb"
-  - "python manage.py createdb"
+  - "python manage.py database init"
+  - "python manage.py database migrate"
+  - "python manage.py database upgrade"
   - "cd api/v1"
 
 script:
