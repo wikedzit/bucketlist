@@ -11,11 +11,17 @@ manager.add_command('databases', MigrateCommand)
 
 @manager.command
 def createdb():
-    create_database(app.config['SQLALCHEMY_DATABASE_URI'])
+    try:
+        create_database(app.config['SQLALCHEMY_DATABASE_URI'])
+    except:
+        print("Could not create a database")
 
 @manager.command
 def dropdb():
-    drop_database(app.config['SQLALCHEMY_DATABASE_URI'])
+    try:
+        drop_database(app.config['SQLALCHEMY_DATABASE_URI'])
+    except:
+        print("Could not drop a database")
 
 if __name__ == '__main__':
     manager.run()

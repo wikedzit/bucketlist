@@ -1,7 +1,7 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_restplus import Api
-from config import app_config
+from api.v1.config import app_config
 
 
 app = Flask(__name__)

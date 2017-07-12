@@ -9,7 +9,6 @@ __pycache__/
 
 *.db
 migrations/
-
 # Distribution / packaging
 .Python
 env/

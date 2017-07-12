@@ -12,12 +12,12 @@ def db(current=None):
         },
 
         "postgres": {
-            'test': 'postgresl://@127.0.0.1/bktest',
-            'develop': 'postgresl://@127.0.0.1/bkdevelop',
-            'production': 'postgresl://@127.0.0.1/bkproduction'
+            'test': 'postgresql://@127.0.0.1/bktest',
+            'develop': 'postgresql://@127.0.0.1/bkdevelop',
+            'production': 'postgresql://@127.0.0.1/bkproduction'
         }
     }
 
     return dbase[current]
 
-db_config = db(default)
+db_config = db()
