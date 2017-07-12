@@ -6,7 +6,7 @@
 # Bucketlist API
  
 ## Introduction
-A Bucket List is a list of things that one has not done but wishes to accomplish before their demise.
+A Bucket List is a list of things that one has not done but wishes to accomplish before their demise
 
 # Project description
 
