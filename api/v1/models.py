@@ -1,8 +1,9 @@
 from datetime import datetime
 from passlib.apps import custom_app_context as pwdc
-from api.v1.headers import databases as db
+from .headers import databases as db
 
-class BaseModel(): #Rename to base class
+
+class BaseModel(object):
 
     # WRITING THE DATABASE
     # Commit values to the database

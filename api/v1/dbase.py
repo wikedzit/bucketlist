@@ -6,15 +6,15 @@ def db(current=None):
         current = "postgres"
     dbase = {
         "sqlite":{
-            'test': 'sqlite:///bktest.db',
-            'develop': 'sqlite:///bkdevelop.db',
-            'production': 'sqlite:///bkproduction.db'
+            'test': 'sqlite:///bktest',
+            'develop': 'sqlite:///bkdevelop',
+            'production': 'sqlite:///bkproduction'
         },
 
         "postgres": {
-            'test': 'postgresql://@127.0.0.1/bktest',
-            'develop': 'postgresql://@127.0.0.1/bkdevelop',
-            'production': 'postgresql://@127.0.0.1/bkproduction'
+            'test': 'postgresql://@127.0.0.1:5432/bktest',
+            'develop': 'postgresql://@127.0.0.1:5432/bkdevelop',
+            'production': 'postgresql://@127.0.0.1:5432/bkproduction'
         }
     }
 

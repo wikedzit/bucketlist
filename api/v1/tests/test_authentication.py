@@ -1,8 +1,8 @@
-from .imports import *
 import json
 import unittest
-from headers import envi, databases
-from endpoints import app, User
+
+from ..headers import envi, databases
+from ..endpoints import app, User, Bucket
 
 
 class TestAuthentication(unittest.TestCase):

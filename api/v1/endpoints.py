@@ -2,8 +2,8 @@ import re
 from flask import jsonify
 from flask_jwt_extended import JWTManager, jwt_required, create_access_token, get_jwt_identity
 from flask_restplus import Resource, fields, reqparse
-from api.v1.headers import app, api, databases
-from api.v1.models import User, Bucket, Item
+from .headers import app, api, databases
+from .models import User, Bucket, Item
 
 
 ns = api.namespace('api/v1', description='Bucketlist operations')
