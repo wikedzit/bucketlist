@@ -17,6 +17,7 @@ services:
 
 before_script:
   - psql -c 'create database bktest;' -U postgres
+  - psql -c 'create database bkdevelop;' -U postgres
   - cd api/v1
 
 script:
