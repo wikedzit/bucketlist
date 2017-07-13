@@ -18,5 +18,5 @@ def envi(current=None):
     if current:
         app.config.from_object(app_config[current])
 
-envi()
+envi('Production')
 databases = SQLAlchemy(app)
