@@ -1,3 +1,4 @@
 from api.v1.endpoints import app
 # App launcher  `
-app.run()
+if __name__ == '__main__':
+    app.run()
