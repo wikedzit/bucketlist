@@ -10,8 +10,7 @@ A Bucket List is a list of things that one has not done but wishes to accomplish
 
 >The API is hosted live on Heroku; https://cp2bucketlist.herokuapp.com/
 
->Any other operation just requires to add on bucketlist endpoints. 
-Accessing the above URL will point you to an interactive documentation page from which you can access all the endpoints of this API.
+>Accessing the above URL will point you to an interactive documentation page from which you can access all the endpoints of this API.
 
 # Project description
 This API has been designed to enables CRUD functionality (Create, Read, Update, Delete) operations on the bucket list. It allows users to register and manage their bucketlists.
