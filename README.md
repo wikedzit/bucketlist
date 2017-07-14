@@ -65,19 +65,19 @@ DELETE bucketlist/app/v1/bucketlists/id/items/item_id | Deletes an item in a buc
 ![alt text](screenshots/login.png)
 
 >add bucket
-![alt text](screenshots/add-bucket.png)
+![alt text](screenshots/add-bucketlist.png)
 
 >list all buckets
-![alt text](screenshots/get-buckets.png)
+![alt text](screenshots/get-bucketlists.png)
 
 >get single bucket
-![alt text](screenshots/get-single-bucket.png)
+![alt text](screenshots/get-specific-bucketlist.png)
 
 >add item
 ![alt text](screenshots/add-item.png)
 
->delete a bucket
-![alt text](screenshots/delete.png)
+>delete a bucketlist
+![alt text](screenshots/delete-bucketlist.png)
 
 ### Testing
 Tests have been implemented using unittest framework
