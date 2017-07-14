@@ -54,6 +54,30 @@ POST bucketlist/app/v1/bucketlists/id/items/ | Creates a new item in bucket list
 PUT bucketlist/app/v1/bucketlists/id/items/item_id | Updates a bucket list item | PRIVATE
 DELETE bucketlist/app/v1/bucketlists/id/items/item_id | Deletes an item in a bucket list | PRIVATE
 
+### Screenshots
+>API Documentation
+![alt text](screenshots/doc.png)
+
+>Register
+![alt text](screenshots/register.png)
+
+>Login
+![alt text](screenshots/login.png)
+
+>add bucket
+![alt text](screenshots/add-bucket.png)
+
+>list all buckets
+![alt text](screenshots/get-buckets.png)
+
+>get single bucket
+![alt text](screenshots/get-single-bucket.png)
+
+>add item
+![alt text](screenshots/add-item.png)
+
+delete
+![alt text](screenshots/delete.png)
 
 ### Testing
 Tests have been implemented using unittest framework
