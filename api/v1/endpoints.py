@@ -174,7 +174,6 @@ class BucketList(Resource):
 
         user_id = get_jwt_identity()
         buckets = Bucket.all(lmt=lmt, page=page, q=qword, uid=user_id)
-        #buckets = Bucket.paginate(page, lmt, False)
         return buckets, 200  # OK
 
     @ns.doc('create_bucket')
