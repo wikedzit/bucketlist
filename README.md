@@ -76,7 +76,7 @@ DELETE bucketlist/app/v1/bucketlists/id/items/item_id | Deletes an item in a buc
 >add item
 ![alt text](screenshots/add-item.png)
 
-delete
+>delete a bucket
 ![alt text](screenshots/delete.png)
 
 ### Testing
