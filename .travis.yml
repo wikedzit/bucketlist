@@ -1,0 +1,26 @@
+language: python
+python:
+  - "2.7"
+  - "3.3"
+  - "3.4"
+  - "3.5"
+  - "3.6"
+
+install:
+  - "pip install -r requirements.txt"
+  - "pip install coverage"
+  - "pip install coveralls"
+
+services:
+  - postgresql
+
+before_script:
+  - psql -c 'create database bktest;' -U postgres
+  - psql -c 'create database bkdevelop;' -U postgres
+  - cd api/v1
+
+script:
+  - nosetests -v --cover-erase  --cover-package=. --with-coverage --cover-tests
+
+after_success:
+  - coveralls

@@ -1,11 +1,14 @@
 # Byte-compiled / optimized / DLL files
 __pycache__/
+.idea/
 *.py[cod]
 *$py.class
 
 # C extensions
 *.so
 
+*.db
+migrations/
 # Distribution / packaging
 .Python
 env/
@@ -24,6 +27,7 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+
 
 # PyInstaller
 #  Usually these files are written by a python script from a template
